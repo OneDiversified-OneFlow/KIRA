@@ -743,11 +743,11 @@
 
                 const formData = new FormData();
                 const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-                formData.append('audio', audioBlob, `meeting_${timestamp}.webm`);
+                formData.append('file', audioBlob, `meeting_${timestamp}.webm`);
 
                 updateStatus('📤 회의 파일 저장 중...');
 
-                const response = await fetch('/api/meeting/save', {
+                const response = await fetch('/meeting/upload', {
                     method: 'POST',
                     body: formData
                 });

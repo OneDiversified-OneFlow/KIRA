@@ -4,7 +4,7 @@ const siteUrl = 'https://kira.krafton-ai.com'
 
 export default defineConfig({
   title: 'KIRA Documentation',
-  description: 'KIRA is an AI virtual employee that works 24/7. Install a desktop app and start working with your own AI assistant. Integrates with Slack, Outlook, Confluence, Jira, and more.',
+  description: 'KIRA is an AI virtual coworker that works 24/7. Install a desktop app and start working with your own AI assistant. Integrates with Slack, Outlook, Confluence, Jira, and more.',
   ignoreDeadLinks: true,
 
   // Sitemap generation
@@ -31,14 +31,14 @@ gtag('config', 'G-05X6YL37F9');`],
     ['meta', { name: 'theme-color', content: '#3eaf7c' }],
     ['meta', { name: 'author', content: 'KRAFTON AI' }],
     ['meta', { name: 'robots', content: 'index, follow' }],
-    ['meta', { name: 'keywords', content: 'AI assistant, virtual employee, Slack bot, AI agent, desktop app, productivity, automation, Claude, KRAFTON AI, KIRA' }],
+    ['meta', { name: 'keywords', content: 'AI assistant, virtual coworker, Slack bot, AI agent, desktop app, productivity, automation, Claude, KRAFTON AI, KIRA' }],
 
     // Open Graph / Facebook
     ['meta', { property: 'og:type', content: 'website' }],
-    ['meta', { property: 'og:site_name', content: 'KIRA - AI Virtual Employee' }],
+    ['meta', { property: 'og:site_name', content: 'KIRA - AI Virtual Coworker' }],
     ['meta', { property: 'og:url', content: siteUrl }],
-    ['meta', { property: 'og:title', content: 'KIRA - Your AI Virtual Employee' }],
-    ['meta', { property: 'og:description', content: 'Install a desktop app and hire your own AI virtual employee. Works 24/7, integrates with Slack, Outlook, Confluence, and more.' }],
+    ['meta', { property: 'og:title', content: 'KIRA - Your AI Virtual Coworker' }],
+    ['meta', { property: 'og:description', content: 'Install a desktop app and work with your own AI virtual coworker. Works 24/7, integrates with Slack, Outlook, Confluence, and more.' }],
     ['meta', { property: 'og:image', content: `${siteUrl}/images/android-chrome-512x512.png` }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
@@ -47,8 +47,8 @@ gtag('config', 'G-05X6YL37F9');`],
 
     // Twitter Card
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: 'KIRA - Your AI Virtual Employee' }],
-    ['meta', { name: 'twitter:description', content: 'Install a desktop app and hire your own AI virtual employee. Works 24/7, integrates with Slack, Outlook, Confluence, and more.' }],
+    ['meta', { name: 'twitter:title', content: 'KIRA - Your AI Virtual Coworker' }],
+    ['meta', { name: 'twitter:description', content: 'Install a desktop app and work with your own AI virtual coworker. Works 24/7, integrates with Slack, Outlook, Confluence, and more.' }],
     ['meta', { name: 'twitter:image', content: `${siteUrl}/images/android-chrome-512x512.png` }],
 
     // Canonical
@@ -266,7 +266,7 @@ gtag('config', 'G-05X6YL37F9');`],
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/krafton-ai' }
+      { icon: 'github', link: 'https://github.com/krafton-ai/kira' }
     ]
   }
 })

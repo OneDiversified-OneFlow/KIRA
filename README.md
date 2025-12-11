@@ -1,4 +1,4 @@
-# 🤖 KIRA - AI Virtual Employee
+# 🤖 KIRA - AI Virtual Coworker
 
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green)](https://nodejs.org/)
@@ -22,9 +22,9 @@
 
 > **KIRA** = **K**RAFTON **I**NTELLIGENCE **R**OOKIE **A**GENT
 
-KIRA is an open-source project that repackages **KRIS (KRAFTON Intelligence System)**—an AI agent system successfully used internally at KRAFTON—into a "virtual employee" concept that anyone can install and use as a standalone desktop application.
+KIRA is an open-source project that repackages **KRIS (KRAFTON Intelligence System)**—an AI agent system successfully used internally at KRAFTON—into a "virtual coworker" concept that anyone can install and use as a standalone desktop application.
 
-KIRA is an **AI virtual employee** that runs as a desktop application. Once installed:
+KIRA is an **AI virtual coworker** that runs as a desktop application. Once installed:
 
 - 🤖 **Chat in Slack**: Natural conversations in DMs, channels, and threads
 - 📧 **Email Monitoring**: Auto-extract tasks from Outlook emails
@@ -34,7 +34,7 @@ KIRA is an **AI virtual employee** that runs as a desktop application. Once inst
 
 ### Two Usage Modes
 
-**🤖 Virtual Employee Mode (Recommended)**
+**🤖 Virtual Coworker Mode (Recommended)**
 - Dedicated bot account acting as a team member
 - Transparent work shared with the entire team
 

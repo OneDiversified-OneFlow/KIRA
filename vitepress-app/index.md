@@ -25,8 +25,8 @@ hero:
     alt: KIRA
   actions:
     - theme: brand
-      text: Get Started
-      link: /getting-started
+      text: GitHub
+      link: https://github.com/krafton-ai/kira
     - theme: alt
       text: KIRA for macOS (Apple Silicon)
       link: https://kira.krafton-ai.com/download/KIRA-0.1.7-arm64.dmg

@@ -4,10 +4,13 @@ Meeting Routes
 """
 
 import logging
+from datetime import datetime
+from pathlib import Path
 from fastapi import APIRouter, Request, UploadFile, File, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
 from app.cc_slack_handlers import is_authorized_user
+from app.config.settings import get_settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/meeting", tags=["meeting"])
@@ -29,17 +32,26 @@ async def upload_recording(
 ):
     """회의 녹음 파일 업로드"""
     try:
-        # 파일 저장 로직
+        settings = get_settings()
+
+        # 오늘 날짜 폴더 생성 (YYYYMMDD)
+        today = datetime.now().strftime("%Y%m%d")
+        meetings_dir = Path(settings.FILESYSTEM_BASE_DIR) / "meetings" / today
+        meetings_dir.mkdir(parents=True, exist_ok=True)
+
+        # 파일 저장
         contents = await file.read()
-        file_path = f"/tmp/meeting_{file.filename}"
+        file_path = meetings_dir / file.filename
 
         with open(file_path, "wb") as f:
             f.write(contents)
 
-        # 처리 로직 (STT, 요약 등)
+        logger.info(f"[MEETING] Saved: {file_path}")
+
         return JSONResponse({
             "status": "success",
-            "message": f"Meeting recording {file.filename} uploaded",
+            "message": "Meeting recording saved",
+            "filename": f"{today}/{file.filename}",
             "user": user.get("name")
         })
 

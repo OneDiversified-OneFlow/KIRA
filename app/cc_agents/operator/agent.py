@@ -263,7 +263,7 @@ def build_tool_usage_rules(settings: Settings) -> str:
     # 음성 수신 채널 - Clova (Meeting Transcription)
     if settings.CLOVA_ENABLED:
         conditional_rules.append(
-            "- 회의록 작성 요청 시 `mcp__meeting_transcription__*` 도구를 사용하세요. 먼저 `mcp__meeting_transcription__list_meeting_files`로 날짜별 녹음 파일을 조회하고, `mcp__meeting_transcription__transcribe_meeting`으로 텍스트를 추출하여 회의록을 작성하세요. 날짜 언급이 없다면 가장 최근 파일로 작성하세요."
+            "- 녹취 회의록, 녹음 회의록 작성 요청 시 `mcp__meeting_transcription__*` 도구를 사용하세요. 먼저 `mcp__meeting_transcription__list_meeting_files`로 날짜별 녹음 파일을 조회하고, `mcp__meeting_transcription__transcribe_meeting`으로 텍스트를 추출하여 회의록을 작성하세요. 날짜 언급이 없다면 가장 최근 파일로 작성하세요."
         )
 
     # Computer Use - Chrome
