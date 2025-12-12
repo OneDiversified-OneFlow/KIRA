@@ -1,6 +1,6 @@
 ---
 title: Getting Started with KIRA | Installation Guide
-description: Step-by-step guide to install and set up KIRA, your AI virtual coworker. Learn how to connect Slack, configure tokens, and start chatting with your AI assistant in under 5 minutes.
+description: Step-by-step guide to install and set up KIRA, your AI virtual coworker. Learn how to connect Slack, configure tokens, and start chatting with your AI assistant in under 15 minutes.
 head:
   - - meta
     - name: keywords
@@ -10,7 +10,7 @@ head:
       content: Getting Started with KIRA | Installation Guide
   - - meta
     - property: og:description
-      content: Install KIRA in 5 minutes. Complete guide for Slack app setup, token configuration, and starting your first conversation.
+      content: Install KIRA in 15 minutes. Complete guide for Slack app setup, token configuration, and starting your first conversation.
   - - meta
     - property: og:url
       content: https://kira.krafton-ai.com/getting-started
@@ -18,7 +18,7 @@ head:
 
 # Getting Started
 
-Getting started with KIRA is really simple. Follow this guide and you'll be chatting with your own AI virtual coworker in under 5 minutes.
+Getting started with KIRA is really simple. Follow this guide and you'll be chatting with your own AI virtual coworker in under 15 minutes.
 
 ## 🎯 Choose Your Mode
 

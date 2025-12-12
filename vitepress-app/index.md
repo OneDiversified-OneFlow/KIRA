@@ -73,20 +73,20 @@ KIRA is an open-source project that repackages **KRIS (KRAFTON Intelligence Syst
 
 ### 🎬 Demo
 
-<div style="display: flex; gap: 12px; justify-content: center; margin: 24px 0;">
-  <div style="text-align: center; flex: 1;">
+<div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 24px 0;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/Search+PPTX_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">Ask your virtual coworker to research and create a presentation</p>
   </div>
-  <div style="text-align: center; flex: 1;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/GitRepo+PDF_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">Ask your virtual coworker to review code and summarize in a PDF</p>
   </div>
-  <div style="text-align: center; flex: 1;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/WebInterface+Wiki_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">Talk to your virtual coworker by voice and have them update the wiki</p>
   </div>
-  <div style="text-align: center; flex: 1;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/Proactive+BotInThread_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">Your virtual coworker proactively offers help based on past work</p>
   </div>
@@ -147,6 +147,6 @@ Connect directly with work tools like Slack, Outlook, Confluence, Jira, GitLab, 
 
 <div style="text-align: center; margin-top: 60px;">
   <h2>Get Started Now</h2>
-  <p style="font-size: 18px;">Hire your own AI virtual coworker in just 5 minutes</p>
+  <p style="font-size: 18px;">Hire your own AI virtual coworker in just 15 minutes</p>
   <a href="/getting-started" style="display: inline-block; margin-top: 20px; padding: 12px 32px; background: #3eaf7c; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Get Started →</a>
 </div>

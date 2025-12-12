@@ -1,6 +1,6 @@
 ---
 layout: home
-title: KIRA - AI 가상 직원 | 5분 만에 나만의 AI 비서 고용하기
+title: KIRA - AI 가상 직원 | 15분 만에 나만의 AI 비서 고용하기
 description: KIRA는 24시간 일하는 AI 가상 직원입니다. 데스크톱 앱만 설치하면 Slack, Outlook, Confluence, Jira와 연동되는 AI 비서를 바로 사용할 수 있습니다. 코딩 필요 없음.
 head:
   - - meta
@@ -76,20 +76,20 @@ KIRA는 KRAFTON 사내에서 성공적으로 사용 중인 AI 에이전트 시�
 
 ### 🎬 데모
 
-<div style="display: flex; gap: 12px; justify-content: center; margin: 24px 0;">
-  <div style="text-align: center; flex: 1;">
+<div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 24px 0;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/Search+PPTX_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 자료 조사 후 발표자료 만들어달라고 부탁</p>
   </div>
-  <div style="text-align: center; flex: 1;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/GitRepo+PDF_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 코드 리뷰 후 PDF로 정리해달라고 부탁</p>
   </div>
-  <div style="text-align: center; flex: 1;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/WebInterface+Wiki_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 음성으로 말하고 위키 업데이트 부탁</p>
   </div>
-  <div style="text-align: center; flex: 1;">
+  <div style="text-align: center; flex: 1 1 200px; max-width: 400px;">
     <video src="https://kira.krafton-ai.com/videos/Proactive+BotInThread_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원이 과거 업무 기반으로 먼저 도움을 제안</p>
   </div>
@@ -150,6 +150,6 @@ Slack, Outlook, Confluence, Jira, GitLab, X 등 업무에 필요한 도구들과
 
 <div style="text-align: center; margin-top: 60px;">
   <h2>지금 바로 시작하세요</h2>
-  <p style="font-size: 18px;">5분이면 나만의 AI 가상 직원을 고용할 수 있습니다</p>
+  <p style="font-size: 18px;">15분이면 나만의 AI 가상 직원을 고용할 수 있습니다</p>
   <a href="/ko/getting-started" style="display: inline-block; margin-top: 20px; padding: 12px 32px; background: #3eaf7c; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">시작하기 →</a>
 </div>

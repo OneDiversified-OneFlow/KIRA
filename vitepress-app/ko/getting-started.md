@@ -1,6 +1,6 @@
 ---
 title: KIRA 시작하기 | 설치 가이드
-description: KIRA AI 가상 직원을 설치하고 설정하는 단계별 가이드입니다. Slack 연동, 토큰 설정, AI 비서와의 첫 대화까지 5분 안에 완료하세요.
+description: KIRA AI 가상 직원을 설치하고 설정하는 단계별 가이드입니다. Slack 연동, 토큰 설정, AI 비서와의 첫 대화까지 15분 안에 완료하세요.
 head:
   - - meta
     - name: keywords
@@ -10,7 +10,7 @@ head:
       content: KIRA 시작하기 | 설치 가이드
   - - meta
     - property: og:description
-      content: 5분 안에 KIRA를 설치하세요. Slack 앱 설정, 토큰 구성, 첫 대화 시작까지 완벽 가이드.
+      content: 15분 안에 KIRA를 설치하세요. Slack 앱 설정, 토큰 구성, 첫 대화 시작까지 완벽 가이드.
   - - meta
     - property: og:url
       content: https://kira.krafton-ai.com/ko/getting-started
@@ -21,7 +21,7 @@ head:
 
 # 시작하기
 
-KIRA를 시작하는 것은 정말 간단합니다. 이 가이드를 따라하면 5분 안에 나만의 AI 가상 직원과 대화를 시작할 수 있습니다.
+KIRA를 시작하는 것은 정말 간단합니다. 이 가이드를 따라하면 15분 안에 나만의 AI 가상 직원과 대화를 시작할 수 있습니다.
 
 ## 🎯 모드 선택
 
