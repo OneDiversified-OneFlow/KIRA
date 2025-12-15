@@ -78,27 +78,27 @@ KIRA는 KRAFTON 사내에서 성공적으로 사용 중인 AI 에이전트 시�
 
 <div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 24px 0;">
   <div style="text-align: center; flex: 0 0 calc(33.333% - 8px); min-width: 250px;">
-    <video src="https://kira.krafton-ai.com/videos/Search+PPTX_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
+    <video src="https://kira.krafton-ai.com/videos/Search+PPTX_cut.mp4?v=2" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 자료 조사 후 발표자료 만들어달라고 부탁</p>
   </div>
   <div style="text-align: center; flex: 0 0 calc(33.333% - 8px); min-width: 250px;">
-    <video src="https://kira.krafton-ai.com/videos/GitRepo+PDF_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
+    <video src="https://kira.krafton-ai.com/videos/GitRepo+PDF_cut.mp4?v=2" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 코드 리뷰 후 PDF로 정리해달라고 부탁</p>
   </div>
   <div style="text-align: center; flex: 0 0 calc(33.333% - 8px); min-width: 250px;">
-    <video src="https://kira.krafton-ai.com/videos/WebInterface+Wiki_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
+    <video src="https://kira.krafton-ai.com/videos/WebInterface+Wiki_cut.mp4?v=2" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 음성으로 말하고 위키 업데이트 부탁</p>
   </div>
   <div style="text-align: center; flex: 0 0 calc(33.333% - 8px); min-width: 250px;">
-    <video src="https://kira.krafton-ai.com/videos/Proactive+BotInThread_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
+    <video src="https://kira.krafton-ai.com/videos/Proactive+BotInThread_cut.mp4?v=2" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원이 과거 업무 기반으로 먼저 도움을 제안</p>
   </div>
   <div style="text-align: center; flex: 0 0 calc(33.333% - 8px); min-width: 250px;">
-    <video src="https://kira.krafton-ai.com/videos/Outlook+Schedule_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
+    <video src="https://kira.krafton-ai.com/videos/Outlook+Schedule_cut.mp4?v=2" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원에게 이메일로 스케줄 등록 요청</p>
   </div>
   <div style="text-align: center; flex: 0 0 calc(33.333% - 8px); min-width: 250px;">
-    <video src="https://kira.krafton-ai.com/videos/Proactive+TranslateFile_cut.mp4" width="100%" controls style="border-radius: 8px;"></video>
+    <video src="https://kira.krafton-ai.com/videos/Proactive+TranslateFile_cut.mp4?v=2" width="100%" controls style="border-radius: 8px;"></video>
     <p style="margin-top: 8px; font-size: 13px; color: #666;">가상 직원이 문서를 먼저 번역해줌</p>
   </div>
 </div>
