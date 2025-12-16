@@ -208,7 +208,7 @@ def get_channel_pending_confirms(channel_id: str, user_id: str, thread_ts: str =
             original_request_text, thread_ts, confirmed, response, created_at, updated_at, status
         FROM confirms
         WHERE channel_id = ? AND user_id = ? AND confirmed = 0
-          AND created_at >= datetime('now', '-1 day')
+          AND created_at >= datetime('now', '-12 hours')
           AND (thread_ts = ? OR thread_ts IS NULL)
         ORDER BY created_at DESC
     """, (channel_id, user_id, thread_ts))

@@ -4,23 +4,23 @@ A guide to getting started with KIRA.
 
 ## 🎯 Mode Selection
 
-KIRA can be used in **Bot Mode** or **Virtual Employee Mode**.
+KIRA can be used in **Bot Mode** or **Virtual Coworker Mode**.
 
-| Feature | Bot Mode | Virtual Employee Mode |
+| Feature | Bot Mode | Virtual Coworker Mode |
 |---------|----------|----------------------|
 | **Installation** | Your computer | Dedicated computer/VM |
 | **Slack Account** | Your account/bot app | Dedicated account for AI |
 | **Uptime** | When your computer is on | 24/7 always on |
 | **Best For** | Personal AI assistant | Team-shared AI coworker |
 
-> 💡 **KRAFTON Use Case**: KRAFTON provides a dedicated company account and computer to run KIRA as a virtual employee.
+> 💡 **KRAFTON Use Case**: KRAFTON provides a dedicated company account and computer to run KIRA as a virtual coworker.
 
 ### 🤖 Bot Mode
 Install on **your computer** and manage it yourself as a personal AI assistant.
 - Stops when your computer is off
 - Recommended for quick and simple setup
 
-### 👤 Virtual Employee Mode
+### 👤 Virtual Coworker Mode
 Install on a **dedicated computer** and run 24/7 as a team-shared AI coworker.
 - Requires a dedicated Slack account for the AI
 - Recommended for operating like a real team member

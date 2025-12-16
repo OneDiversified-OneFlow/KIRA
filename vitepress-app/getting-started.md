@@ -24,10 +24,10 @@ Getting started with KIRA is really simple. Follow this guide and you'll be chat
 
 KIRA can be used in two different modes. **Choose your preferred mode first.**
 
-<img src="/images/screenshots/mode-comparison.png" alt="Bot Mode vs Virtual Employee Mode" style="max-width: 550px; width: 100%;" />
+<img src="/images/screenshots/mode-comparison.png" alt="Bot Mode vs Virtual Coworker Mode" style="max-width: 550px; width: 100%;" />
 
 ::: info Mode Comparison
-| Feature | Bot Mode | Virtual Employee Mode |
+| Feature | Bot Mode | Virtual Coworker Mode |
 |---------|----------|----------------------|
 | **Installation** | Your computer | Dedicated computer/VM/server |
 | **Slack Account** | Your account or bot app | Dedicated account for AI |
@@ -38,7 +38,7 @@ KIRA can be used in two different modes. **Choose your preferred mode first.**
 | **Setup** | Easy | Slightly complex |
 :::
 
-> 💡 **KRAFTON Use Case**: KRAFTON provides a dedicated company account and computer to run KIRA as a virtual employee, just like onboarding a new hire.
+> 💡 **KRAFTON Use Case**: KRAFTON provides a dedicated company account and computer to run KIRA as a virtual coworker, just like onboarding a new hire.
 
 ### 🤖 Bot Mode
 
@@ -54,7 +54,7 @@ KIRA can be used in two different modes. **Choose your preferred mode first.**
 - Using AI assistant alone
 - Quick and simple setup
 
-### 👤 Virtual Employee Mode
+### 👤 Virtual Coworker Mode
 
 **Run KIRA as a team-shared AI coworker on a dedicated computer.**
 
@@ -69,7 +69,7 @@ KIRA can be used in two different modes. **Choose your preferred mode first.**
 - Operating like a real team member
 
 ::: warning Choose Your Mode Before Proceeding
-This guide has different setup steps depending on your chosen mode. Follow the **Bot Mode** or **Virtual Employee Mode** instructions at each step.
+This guide has different setup steps depending on your chosen mode. Follow the **Bot Mode** or **Virtual Coworker Mode** instructions at each step.
 :::
 
 ---
