@@ -194,6 +194,153 @@ KIRA: [Memory search]
 
 ---
 
+## 💬 Memory Usage Examples
+
+Once memory is built up, KIRA automatically understands context and works smarter.
+
+### Using Team Member Info
+```
+User: Ask John if he can attend today's meeting
+
+KIRA: [Auto-search John Doe from memory]
+      I'll send a Slack DM to John Doe.
+
+      "Hi John, are you available for today's meeting?"
+
+      Should I send it?
+```
+
+### Using Project Context
+```
+User: What was decided in last week's meeting?
+
+KIRA: [Search Project Alpha related memory]
+      Last week's meeting (Dec 10) decisions:
+      1. API design confirmed as REST
+      2. 1st milestone extended to Dec 31
+      3. Bob reassigned to frontend
+```
+
+### Using Organization Structure
+```
+User: Who do I need approval from for this?
+
+KIRA: [Reference org structure memory]
+      The approver for Project Alpha is
+      CTO Jane Smith.
+
+      Should I send an approval request email to Jane?
+```
+
+### Using Document Info
+```
+User: What was the API error code convention again?
+
+KIRA: [Reference saved API guidelines]
+      API error code conventions:
+      - 4xx: Client errors
+      - 5xx: Server errors
+      - Custom codes start from 1000
+
+      (Source: API-Guidelines doc)
+```
+
+---
+
+## 🧹 Memory Cleanup
+
+Over time, duplicate or outdated information can accumulate. Use the memory cleanup feature to keep things organized.
+
+### Request Memory Cleanup
+```
+User: KIRA, clean up memory
+
+KIRA: I'll analyze and organize your memory.
+
+      Cleanup results:
+      - Merged 3 duplicate files
+      - Moved 2 misclassified files (users/ → tasks/)
+      - Deleted 5 outdated temp files
+
+      Total: 97 → 87 files
+```
+
+### Cleanup Specific Folder
+```
+User: Clean up just the users folder
+
+KIRA: Analyzing users/ folder.
+
+      Issues found:
+      - 3 files for John Doe (1 profile + 2 task records)
+
+      Should I move the 2 task records to tasks/ folder?
+```
+
+::: tip Memory Cleanup Principles
+- **users/**: Keep only 1 profile file per person
+- **channels/**: Keep only 1 file per channel
+- **tasks/**: Store task records separately
+- Confirm before deleting important info
+:::
+
+---
+
+## 💡 Tips for Building Effective Memory
+
+### 1. Use Slack Tags to Remember Team Members
+
+**❌ Less effective:**
+```
+User: Remember John
+```
+
+**✅ More effective:**
+```
+User: Remember @John Doe. He's a backend developer on the dev team.
+
+KIRA: [Auto-collect info from Slack]
+      - Slack ID: U01234567
+      - Email: john@company.com
+      - Name: John Doe
+
+      Saved John Doe's info!
+```
+
+::: tip Benefits of Slack Tags
+Tagging auto-collects Slack ID and email, so later "Send email to John" automatically finds the address.
+:::
+
+### 2. Include Relationships and Context
+
+```
+User: KIRA, here's Project Beta info
+      - Team: Me, John, Jane
+      - John is PM, Jane is designer
+      - Our Slack channel is #project-beta
+      - Related docs: [Confluence link]
+```
+
+### 3. Be Clear When Updating
+
+```
+User: John moved from dev team to planning team.
+      Update the memory.
+```
+
+### 4. Periodically Check Memory
+
+```
+User: KIRA, show me the team member info I told you
+```
+
+::: warning Memory Quality = Response Quality
+KIRA's response quality is proportional to stored memory quality.
+The more accurate and specific information you provide, the smarter it works.
+:::
+
+---
+
 ## ❓ Next Steps
 
 - [Chat](/features/chat) - Effective communication
