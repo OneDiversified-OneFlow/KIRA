@@ -421,12 +421,12 @@ async function startServer() {
   }
 
   // Check config file
-  // Development 모드에서도 ~/.kira/config.env가 있으면 우선 사용
+  // In development mode, prioritize ~/.kira/config.env if it exists
   let configFile;
   if (app.isPackaged) {
     configFile = CONFIG_FILE;
   } else {
-    // 개발 모드: ~/.kira/config.env가 있으면 사용, 없으면 dev.env 사용
+    // Development mode: use ~/.kira/config.env if exists, otherwise use dev.env
     configFile = fs.existsSync(CONFIG_FILE)
       ? CONFIG_FILE
       : path.join(__dirname, '..', 'app', 'config', 'env', 'dev.env');
@@ -816,12 +816,12 @@ function registerIPCHandlers() {
  * Handle auto-update events
  */
 function setupAutoUpdater() {
-  // 업데이트 확인 중
+  // Checking for updates
   autoUpdater.on('checking-for-update', () => {
-    log.info('업데이트 확인 중...');
+    log.info('Checking for updates...');
   });
 
-  // 업데이트 발견
+  // Update available
   autoUpdater.on('update-available', (info) => {
     log.info('Update available:', info.version);
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -834,18 +834,18 @@ function setupAutoUpdater() {
     }
   });
 
-  // 업데이트 없음
+  // No update available
   autoUpdater.on('update-not-available', (info) => {
-    log.info('최신 버전 사용 중:', info.version);
+    log.info('Using latest version:', info.version);
   });
 
-  // 다운로드 진행 중
+  // Download in progress
   autoUpdater.on('download-progress', (progressObj) => {
-    const logMessage = `다운로드 속도: ${progressObj.bytesPerSecond} - ${progressObj.percent}% 완료 (${progressObj.transferred}/${progressObj.total})`;
+    const logMessage = `Download speed: ${progressObj.bytesPerSecond} - ${progressObj.percent}% complete (${progressObj.transferred}/${progressObj.total})`;
     log.info(logMessage);
   });
 
-  // 다운로드 완료
+  // Download complete
   autoUpdater.on('update-downloaded', (info) => {
     log.info('Update downloaded:', info.version);
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -859,7 +859,7 @@ function setupAutoUpdater() {
       }).then((result) => {
         if (result.response === 0) {
           log.info('User chose to restart now');
-          // 서버 중지 후 업데이트 설치
+          // Stop server before installing update
           if (isServerRunning()) {
             stopServer();
             setTimeout(() => {
@@ -875,10 +875,10 @@ function setupAutoUpdater() {
     }
   });
 
-  // 에러 처리
+  // Error handling
   autoUpdater.on('error', (err) => {
-    log.error('자동 업데이트 에러:', err);
-    // 에러는 조용히 로깅만 (사용자에게 방해하지 않음)
+    log.error('Auto-update error:', err);
+    // Log error silently (don't interrupt user)
   });
 }
 
@@ -896,7 +896,7 @@ app.whenReady().then(() => {
   // Setup and check for updates
   if (app.isPackaged) {
     setupAutoUpdater();
-    // 앱 시작 5초 후 업데이트 확인 (초기 로딩 방해 안 함)
+    // Check for updates 5 seconds after app start (don't interrupt initial loading)
     setTimeout(() => {
       autoUpdater.checkForUpdatesAndNotify();
     }, 5000);

@@ -1,7 +1,7 @@
 """
 Bot Authentication Routes
-봇이 외부 API를 사용하기 위한 인증 설정 라우트
-(X/Twitter 등)
+Authentication setup routes for bot to use external APIs
+(X/Twitter, etc.)
 """
 
 import logging
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/bot/auth", tags=["bot-auth"])
 
 
 def require_admin(request: Request) -> dict:
-    """관리자 권한 확인"""
+    """Check admin permissions"""
     user = request.session.get("user")
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -34,16 +34,16 @@ def require_admin(request: Request) -> dict:
 
 @router.get("/x/start")
 async def x_auth_start(request: Request):
-    """X OAuth 2.0 인증 시작 (로그인 불필요 - 초기 세팅용)"""
+    """Start X OAuth 2.0 authentication (no login required - for initial setup)"""
     try:
-        # PKCE 생성
+        # Generate PKCE
         code_verifier = x_helper.generate_code_verifier()
         code_challenge = x_helper.generate_code_challenge(code_verifier)
 
-        # State (CSRF 방지)
+        # State (CSRF prevention)
         state = x_helper.secrets.token_urlsafe(32)
 
-        # 파일 기반 세션에 저장
+        # Store in file-based session
         oauth_session_store.store(state, {
             "code_verifier": code_verifier,
         })
@@ -51,7 +51,7 @@ async def x_auth_start(request: Request):
         # Redirect URI
         redirect_uri = get_redirect_uri(request, 'x_auth_callback')
 
-        # X 인증 URL 생성
+        # Generate X authorization URL
         auth_url = x_helper.get_authorization_url(redirect_uri, state, code_challenge)
 
         logger.info(f"[X_AUTH] Starting OAuth flow, state={state}")
@@ -61,7 +61,7 @@ async def x_auth_start(request: Request):
     except Exception as e:
         logger.error(f"[X_AUTH] Start error: {e}")
         return HTMLResponse(
-            content=f"<h1>X 인증 시작 실패</h1><p>{str(e)}</p>",
+            content=f"<h1>X Authentication Start Failed</h1><p>{str(e)}</p>",
             status_code=500
         )
 
@@ -76,60 +76,60 @@ async def x_auth_callback(
 ):
     """X OAuth 2.0 Callback"""
     try:
-        # 에러 처리
+        # Error handling
         if error:
             logger.error(f"[X_AUTH] OAuth error: {error} - {error_description}")
             return HTMLResponse(
                 content=f"""
                 <html>
-                <head><title>X 인증 실패</title></head>
+                <head><title>X Authentication Failed</title></head>
                 <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-                    <h1>❌ X (Twitter) 인증 실패</h1>
+                    <h1>X (Twitter) Authentication Failed</h1>
                     <p><strong>Error:</strong> {error}</p>
                     <p><strong>Description:</strong> {error_description or 'N/A'}</p>
-                    <p><a href="/bot/auth/x/start">다시 시도</a></p>
+                    <p><a href="/bot/auth/x/start">Try again</a></p>
                 </body>
                 </html>
                 """,
                 status_code=400
             )
 
-        # 파라미터 검증
+        # Validate parameters
         if not code or not state:
             logger.error("[X_AUTH] Missing code or state")
             return HTMLResponse(
-                content="<h1>잘못된 요청</h1><p>필수 파라미터가 누락되었습니다.</p>",
+                content="<h1>Invalid Request</h1><p>Required parameters are missing.</p>",
                 status_code=400
             )
 
-        # 세션 데이터 가져오기
+        # Get session data
         session_data = oauth_session_store.retrieve(state)
         if not session_data:
             logger.error(f"[X_AUTH] Invalid state: {state}")
             return HTMLResponse(
-                content="<h1>유효하지 않은 요청</h1><p>세션이 만료되었거나 잘못된 요청입니다.</p>",
+                content="<h1>Invalid Request</h1><p>Session has expired or request is invalid.</p>",
                 status_code=400
             )
 
         code_verifier = session_data["code_verifier"]
         user_name = session_data.get("user_name", "Unknown")
 
-        # 세션 삭제 (일회용)
+        # Delete session (one-time use)
         oauth_session_store.delete(state)
 
         # Redirect URI
         redirect_uri = get_redirect_uri(request, 'x_auth_callback')
 
-        # Authorization Code를 Access Token으로 교환
+        # Exchange Authorization Code for Access Token
         token_data = await x_helper.exchange_code_for_token(code, code_verifier, redirect_uri)
 
         if not token_data:
             return HTMLResponse(
-                content="<h1>토큰 발급 실패</h1><p>X API에서 토큰을 받지 못했습니다.</p>",
+                content="<h1>Token Issuance Failed</h1><p>Failed to receive token from X API.</p>",
                 status_code=500
             )
 
-        # 토큰 저장
+        # Save token
         x_helper.save_token(token_data)
 
         logger.info(f"[X_AUTH] OAuth completed for {user_name}")
@@ -142,24 +142,24 @@ async def x_auth_callback(
     except Exception as e:
         logger.error(f"[X_AUTH] Callback error: {e}")
         return HTMLResponse(
-            content=f"<h1>X 인증 실패</h1><p>{str(e)}</p>",
+            content=f"<h1>X Authentication Failed</h1><p>{str(e)}</p>",
             status_code=500
         )
 
 
 @router.get("/x/status")
 async def x_auth_status():
-    """X OAuth 인증 상태 확인 (로그인 불필요)"""
+    """Check X OAuth authentication status (no login required)"""
     try:
         token_data = x_helper.load_token()
 
         if not token_data:
             return {
                 "authenticated": False,
-                "message": "X 인증이 필요합니다."
+                "message": "X authentication is required."
             }
 
-        # 만료 시간 확인
+        # Check expiration time
         expires_at_str = token_data.get("expires_at")
         from datetime import datetime
         expires_at = datetime.fromisoformat(expires_at_str)
@@ -168,7 +168,7 @@ async def x_auth_status():
         if time_remaining.total_seconds() <= 0:
             return {
                 "authenticated": False,
-                "message": "토큰이 만료되었습니다. 재인증이 필요합니다."
+                "message": "Token has expired. Re-authentication is required."
             }
 
         return {
@@ -190,13 +190,13 @@ async def x_auth_status():
 
 @router.post("/x/logout")
 async def x_auth_logout():
-    """X OAuth 토큰 삭제 (로그인 불필요)"""
+    """Delete X OAuth token (no login required)"""
     try:
         x_helper.delete_token()
         logger.info("[X_AUTH] Token deleted")
         return {
             "success": True,
-            "message": "X 인증 토큰이 삭제되었습니다."
+            "message": "X authentication token has been deleted."
         }
     except Exception as e:
         logger.error(f"[X_AUTH] Logout error: {e}")

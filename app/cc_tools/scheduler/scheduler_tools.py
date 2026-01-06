@@ -1,6 +1,6 @@
 """
 Scheduler Tools for Claude Code SDK
-Claude가 직접 스케줄을 관리할 수 있는 도구
+Tools that allow Claude to directly manage schedules
 """
 
 import asyncio
@@ -13,51 +13,51 @@ from claude_agent_sdk import create_sdk_mcp_server, tool
 
 from app import scheduler
 
-# 스케줄 파일 동시 접근 방지를 위한 Lock
+# Lock to prevent concurrent access to schedule file
 _schedule_file_lock = asyncio.Lock()
 
 
 @tool(
     "add_schedule",
-    "새로운 스케줄을 추가합니다. cron 또는 date 타입을 지원합니다.",
+    "Adds a new schedule. Supports cron or date type.",
     {
         "type": "object",
         "properties": {
             "name": {
                 "type": "string",
-                "description": "스케줄의 목적을 나타내는 고유한 이름 (예: '매일 아침 리마인더', '주간 보고')"
+                "description": "Unique name representing the schedule's purpose (e.g., 'Daily morning reminder', 'Weekly report')"
             },
             "schedule_type": {
                 "type": "string",
                 "enum": ["cron", "date"],
-                "description": "스케줄 타입 - 'cron' (반복) 또는 'date' (일회성)"
+                "description": "Schedule type - 'cron' (recurring) or 'date' (one-time)"
             },
             "schedule_value": {
                 "type": "string",
-                "description": "cron 타입: cron 표현식 (예: '0 9 * * *' = 매일 9시), date 타입: 'YYYY-MM-DD HH:MM:SS' 형식"
+                "description": "cron type: cron expression (e.g., '0 9 * * *' = daily at 9am), date type: 'YYYY-MM-DD HH:MM:SS' format"
             },
             "user_id": {
                 "type": "string",
-                "description": "스케줄이 실행될 때 메시지를 받을 사용자 ID"
+                "description": "User ID to receive message when schedule executes"
             },
             "text": {
                 "type": "string",
-                "description": "스케줄 실행 시점에 가상 상주 직원이 받을 완전한 명령문 (반드시 봇 이름으로 시작하는 전체 명령 포함. 예: '원하나님, 1이라고 말해주세요')"
+                "description": "Complete command that the AI employee will receive when schedule executes (must include full command starting with bot name. e.g., 'KIRA, say 1')"
             },
             "channel_id": {
                 "type": "string",
-                "description": "스케줄이 실행될 채널 ID"
+                "description": "Channel ID where schedule will execute"
             },
             "is_enabled": {
                 "type": "boolean",
-                "description": "스케줄 활성화 여부 (기본값: true)"
+                "description": "Whether schedule is enabled (default: true)"
             }
         },
         "required": ["name", "schedule_type", "schedule_value", "user_id", "text", "channel_id"]
     }
 )
 async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
-    """새로운 스케줄 추가"""
+    """Add a new schedule"""
     name = args["name"]
     schedule_type = args["schedule_type"]
     schedule_value = args["schedule_value"]
@@ -74,13 +74,13 @@ async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "잘못된 schedule_type입니다. 'cron' 또는 'date'만 사용할 수 있습니다."
+                        "message": "Invalid schedule_type. Only 'cron' or 'date' can be used."
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
             }
 
-        # 날짜/cron 형식 검증
+        # Validate date/cron format
         if schedule_type == "date":
             from datetime import datetime
             try:
@@ -92,7 +92,7 @@ async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                         "text": json.dumps({
                             "success": False,
                             "error": True,
-                            "message": f"잘못된 날짜 형식입니다: {schedule_value}. 'YYYY-MM-DD HH:MM:SS' 형식을 사용하세요."
+                            "message": f"Invalid date format: {schedule_value}. Please use 'YYYY-MM-DD HH:MM:SS' format."
                         }, ensure_ascii=False, indent=2)
                     }],
                     "error": True
@@ -108,17 +108,17 @@ async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                         "text": json.dumps({
                             "success": False,
                             "error": True,
-                            "message": f"잘못된 cron 표현식입니다: {schedule_value}. 예: '0 9 * * *' (매일 9시)"
+                            "message": f"Invalid cron expression: {schedule_value}. Example: '0 9 * * *' (daily at 9am)"
                         }, ensure_ascii=False, indent=2)
                     }],
                     "error": True
                 }
 
-        # 동시 접근 방지를 위한 Lock 사용
+        # Use Lock to prevent concurrent access
         async with _schedule_file_lock:
             schedules = scheduler.read_schedules_from_file()
 
-            # 중복 이름 체크 (경고만, 차단하지 않음)
+            # Check for duplicate names (warning only, not blocked)
             duplicate_names = [s.get("name") for s in schedules if s.get("name") == name and s.get("is_enabled")]
             if duplicate_names:
                 logging.warning(f"[SCHEDULER_TOOLS] Duplicate schedule name detected: {name}")
@@ -141,7 +141,7 @@ async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": f"성공적으로 스케줄을 추가했습니다: {name}",
+                    "message": f"Successfully added schedule: {name}",
                     "schedule_id": new_schedule["id"]
                 }, ensure_ascii=False, indent=2)
             }]
@@ -154,7 +154,7 @@ async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"스케줄 추가 실패: {str(e)}"
+                    "message": f"Failed to add schedule: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -163,24 +163,24 @@ async def scheduler_add_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "remove_schedule",
-    "ID를 사용하여 스케줄을 삭제합니다.",
+    "Deletes a schedule using its ID.",
     {
         "type": "object",
         "properties": {
             "schedule_id": {
                 "type": "string",
-                "description": "삭제할 스케줄의 ID"
+                "description": "ID of the schedule to delete"
             }
         },
         "required": ["schedule_id"]
     }
 )
 async def scheduler_remove_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
-    """스케줄 삭제"""
+    """Delete a schedule"""
     schedule_id = args["schedule_id"]
 
     try:
-        # 동시 접근 방지를 위한 Lock 사용
+        # Use Lock to prevent concurrent access
         async with _schedule_file_lock:
             schedules = scheduler.read_schedules_from_file()
             original_count = len(schedules)
@@ -193,7 +193,7 @@ async def scheduler_remove_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                         "text": json.dumps({
                             "success": False,
                             "error": True,
-                            "message": f"ID가 {schedule_id}인 스케줄을 찾을 수 없습니다."
+                            "message": f"Cannot find schedule with ID {schedule_id}."
                         }, ensure_ascii=False, indent=2)
                     }],
                     "error": True
@@ -207,7 +207,7 @@ async def scheduler_remove_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": f"ID가 {schedule_id}인 스케줄을 삭제했습니다."
+                    "message": f"Deleted schedule with ID {schedule_id}."
                 }, ensure_ascii=False, indent=2)
             }]
         }
@@ -219,7 +219,7 @@ async def scheduler_remove_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"스케줄 삭제 실패: {str(e)}"
+                    "message": f"Failed to delete schedule: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -228,19 +228,19 @@ async def scheduler_remove_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "list_schedules",
-    "저장된 활성 스케줄의 목록을 반환합니다. 지난 date 타입 스케줄은 자동으로 제외됩니다. channel_id로 특정 채널의 스케줄만 조회할 수 있습니다.",
+    "Returns a list of saved active schedules. Past date-type schedules are automatically excluded. You can filter by channel_id to view only schedules for a specific channel.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "특정 채널의 스케줄만 조회하려면 채널 ID를 지정하세요. 생략하면 모든 채널의 스케줄을 반환합니다."
+                "description": "Specify channel ID to view only schedules for that channel. If omitted, returns schedules for all channels."
             }
         }
     }
 )
 async def scheduler_list_schedules(args: Dict[str, Any]) -> Dict[str, Any]:
-    """스케줄 목록 조회 (지난 스케줄 제외, 채널별 필터링 가능)"""
+    """List schedules (excluding past schedules, with optional channel filtering)"""
     try:
         from datetime import datetime
 
@@ -253,7 +253,7 @@ async def scheduler_list_schedules(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": True,
-                        "message": "등록된 스케줄이 없습니다.",
+                        "message": "No registered schedules.",
                         "schedules": []
                     }, ensure_ascii=False, indent=2)
                 }]
@@ -262,21 +262,21 @@ async def scheduler_list_schedules(args: Dict[str, Any]) -> Dict[str, Any]:
         schedule_list = []
 
         for s in schedules:
-            # channel_id 필터링
+            # Filter by channel_id
             if channel_id_filter and s.get("channel") != channel_id_filter:
                 continue
 
-            # date 타입이고 이미 지난 스케줄은 제외 (과거 시간인 경우 스키핑)
+            # Exclude date-type schedules that have already passed
             if s.get("schedule_type") == "date":
                 try:
                     run_date = datetime.fromisoformat(
                         s.get("schedule_value").replace('Z', '+00:00')
                     )
                     if run_date <= datetime.now(run_date.tzinfo):
-                        continue  # 지난 스케줄 스킵
+                        continue  # Skip past schedules
                 except (ValueError, AttributeError) as e:
-                    logging.warning(f"스케줄 ID {s.get('id')} - 잘못된 날짜 형식: {s.get('schedule_value')}, 오류: {e}")
-                    continue  # 파싱 실패 시 제외
+                    logging.warning(f"Schedule ID {s.get('id')} - Invalid date format: {s.get('schedule_value')}, error: {e}")
+                    continue  # Exclude on parse failure
 
             schedule_list.append({
                 "id": s.get("id"),
@@ -294,7 +294,7 @@ async def scheduler_list_schedules(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": f"등록된 스케줄: {len(schedule_list)}개",
+                    "message": f"Registered schedules: {len(schedule_list)}",
                     "schedules": schedule_list
                 }, ensure_ascii=False, indent=2)
             }]
@@ -307,7 +307,7 @@ async def scheduler_list_schedules(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"스케줄 목록 조회 실패: {str(e)}"
+                    "message": f"Failed to list schedules: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -316,36 +316,36 @@ async def scheduler_list_schedules(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "update_schedule",
-    "기존 스케줄을 업데이트합니다.",
+    "Updates an existing schedule.",
     {
         "type": "object",
         "properties": {
             "schedule_id": {
                 "type": "string",
-                "description": "업데이트할 스케줄의 ID"
+                "description": "ID of the schedule to update"
             },
             "name": {
                 "type": "string",
-                "description": "스케줄의 새 이름 (선택)"
+                "description": "New name for the schedule (optional)"
             },
             "schedule_value": {
                 "type": "string",
-                "description": "새 스케줄 값 (선택)"
+                "description": "New schedule value (optional)"
             },
             "text": {
                 "type": "string",
-                "description": "새 메시지 내용 (선택)"
+                "description": "New message content (optional)"
             },
             "is_enabled": {
                 "type": "boolean",
-                "description": "스케줄 활성화 여부 (선택)"
+                "description": "Whether schedule is enabled (optional)"
             }
         },
         "required": ["schedule_id"]
     }
 )
 async def scheduler_update_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
-    """스케줄 업데이트"""
+    """Update a schedule"""
     schedule_id = args["schedule_id"]
 
     try:
@@ -355,7 +355,7 @@ async def scheduler_update_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
         for s in schedules:
             if s.get("id") == schedule_id:
                 schedule_found = True
-                # 업데이트할 필드만 변경
+                # Only change fields being updated
                 if "name" in args:
                     s["name"] = args["name"]
                 if "schedule_value" in args:
@@ -373,7 +373,7 @@ async def scheduler_update_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": f"ID가 {schedule_id}인 스케줄을 찾을 수 없습니다."
+                        "message": f"Cannot find schedule with ID {schedule_id}."
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -387,7 +387,7 @@ async def scheduler_update_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": f"ID가 {schedule_id}인 스케줄을 업데이트했습니다."
+                    "message": f"Updated schedule with ID {schedule_id}."
                 }, ensure_ascii=False, indent=2)
             }]
         }
@@ -399,14 +399,14 @@ async def scheduler_update_schedule(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"스케줄 업데이트 실패: {str(e)}"
+                    "message": f"Failed to update schedule: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
         }
 
 
-# MCP Server 생성
+# Create MCP Server
 scheduler_tools = [
     scheduler_add_schedule,
     scheduler_remove_schedule,
@@ -416,7 +416,7 @@ scheduler_tools = [
 
 
 def create_scheduler_mcp_server():
-    """Claude Code SDK용 Scheduler MCP 서버"""
+    """Scheduler MCP server for Claude Code SDK"""
     return create_sdk_mcp_server(
         name="scheduler",
         version="1.0.0",

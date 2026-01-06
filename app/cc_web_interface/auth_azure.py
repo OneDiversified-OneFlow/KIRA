@@ -1,6 +1,6 @@
 """
 Azure/Microsoft OAuth Authentication
-Microsoft Azure AD를 통한 사용자 인증
+User authentication via Microsoft Azure AD
 """
 
 import logging
@@ -13,12 +13,12 @@ from app.config.settings import get_settings
 
 
 class AzureOAuth:
-    """Azure/Microsoft OAuth 2.0 인증 핸들러"""
+    """Azure/Microsoft OAuth 2.0 authentication handler"""
 
     def __init__(self):
         settings = get_settings()
 
-        # OAuth 설정
+        # OAuth configuration
         config = Config(environ={
             "MS_CLIENT_ID": settings.WEB_MS365_CLIENT_ID,
             "MS_CLIENT_SECRET": settings.WEB_MS365_CLIENT_SECRET or "",
@@ -27,7 +27,7 @@ class AzureOAuth:
 
         self.oauth = OAuth(config)
 
-        # Microsoft OAuth 등록
+        # Register Microsoft OAuth
         self.oauth.register(
             name='microsoft',
             client_id=config.get('MS_CLIENT_ID'),
@@ -42,16 +42,16 @@ class AzureOAuth:
 
     async def get_user_info_from_token(self, token: Dict[str, Any]) -> Optional[Dict[str, str]]:
         """
-        OAuth 토큰에서 사용자 정보 추출
+        Extract user info from OAuth token
 
         Args:
-            token: OAuth 토큰
+            token: OAuth token
 
         Returns:
-            사용자 정보 (email, name 등)
+            User info (email, name, etc.)
         """
         try:
-            # Microsoft Graph API로 사용자 정보 가져오기
+            # Get user info via Microsoft Graph API
             resp = await self.client.get(
                 'https://graph.microsoft.com/v1.0/me',
                 token=token

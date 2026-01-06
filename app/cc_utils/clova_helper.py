@@ -1,6 +1,6 @@
 """
-Clova Speech Recognition 클라이언트
-웹 인터페이스에서 회의 음성을 텍스트로 변환하는 용도
+Clova Speech Recognition Client
+For converting meeting audio to text in the web interface
 """
 
 import httpx
@@ -14,7 +14,7 @@ from app.config.settings import get_settings
 settings = get_settings()
 
 class ClovaSpeechClient:
-    """Clova Speech Recognition API 클라이언트"""
+    """Clova Speech Recognition API Client"""
 
     def __init__(self):
         self.invoke_url = settings.CLOVA_INVOKE_URL
@@ -29,19 +29,19 @@ class ClovaSpeechClient:
         full_text: bool = True
     ) -> Dict[str, Any]:
         """
-        음성 파일을 텍스트로 변환
+        Convert audio file to text
 
         Args:
-            file_path: 음성 파일 경로
-            completion: 'sync' (동기) 또는 'async' (비동기)
-            diarization: 화자 구분 설정 {"enable": True, "speakerCountMin": 2, "speakerCountMax": 5}
-            word_alignment: 단어별 타임스탬프 포함 여부
-            full_text: 전체 텍스트 반환 여부
+            file_path: Audio file path
+            completion: 'sync' (synchronous) or 'async' (asynchronous)
+            diarization: Speaker diarization settings {"enable": True, "speakerCountMin": 2, "speakerCountMax": 5}
+            word_alignment: Include word-level timestamps
+            full_text: Return full text
 
         Returns:
-            Clova API 응답 (JSON)
+            Clova API response (JSON)
         """
-        # 요청 파라미터
+        # Request parameters
         request_body = {
             'language': 'ko-KR',
             'completion': completion,
@@ -49,32 +49,32 @@ class ClovaSpeechClient:
             'fullText': full_text,
         }
 
-        # 화자 구분 옵션
+        # Speaker diarization option
         if diarization:
             request_body['diarization'] = diarization
 
-        # 헤더
+        # Headers
         headers = {
             'Accept': 'application/json;UTF-8',
             'X-CLOVASPEECH-API-KEY': self.secret_key
         }
 
-        # 파일 읽기
+        # Read file
         file = Path(file_path)
         if not file.exists():
             raise FileNotFoundError(f"Audio file not found: {file_path}")
 
         logging.info(f"[CLOVA] Uploading file: {file.name} ({file.stat().st_size} bytes)")
 
-        # Multipart form-data 준비
+        # Prepare multipart form-data
         with open(file_path, 'rb') as f:
             files = {
                 'media': (file.name, f, 'audio/mpeg'),
                 'params': (None, json.dumps(request_body, ensure_ascii=False).encode('UTF-8'), 'application/json')
             }
 
-            # API 호출
-            async with httpx.AsyncClient(timeout=180.0) as client:  # 3분 타임아웃
+            # API call
+            async with httpx.AsyncClient(timeout=180.0) as client:  # 3 minute timeout
                 response = await client.post(
                     url=f"{self.invoke_url}/recognizer/upload",
                     headers=headers,
@@ -93,21 +93,21 @@ async def convert_speech_to_text(
     enable_diarization: bool = False
 ) -> Dict[str, Any]:
     """
-    음성 파일을 텍스트로 변환 (간편 함수)
+    Convert audio file to text (convenience function)
 
     Args:
-        audio_file: 음성 파일 경로
-        enable_diarization: 화자 구분 활성화
+        audio_file: Audio file path
+        enable_diarization: Enable speaker diarization
 
     Returns:
         {
-            'text': '전체 텍스트',
-            'segments': [...],  # diarization 활성화 시
+            'text': 'Full text',
+            'segments': [...],  # When diarization is enabled
         }
     """
     client = ClovaSpeechClient()
 
-    # 화자 구분 설정
+    # Speaker diarization settings
     diarization = None
     if enable_diarization:
         diarization = {
@@ -124,7 +124,7 @@ async def convert_speech_to_text(
         full_text=True
     )
 
-    # 결과 파싱
+    # Parse result
     text = result.get('text', '')
     segments = result.get('segments', [])
 
@@ -136,32 +136,32 @@ async def convert_speech_to_text(
 
 async def convert_speech_to_text_with_speakers(audio_file: str) -> str:
     """
-    화자 구분이 포함된 회의록 텍스트 생성
+    Generate meeting transcript with speaker identification
 
     Args:
-        audio_file: 음성 파일 경로
+        audio_file: Audio file path
 
     Returns:
-        "[00:00] [화자1]: 안녕하세요\n[00:05] [화자2]: 반갑습니다\n..."
+        "[00:00] [Speaker1]: Hello\n[00:05] [Speaker2]: Nice to meet you\n..."
     """
     result = await convert_speech_to_text(audio_file, enable_diarization=True)
 
     if not result.get('segments'):
-        # 화자 구분 실패 시 전체 텍스트만 반환
+        # Return full text only if diarization failed
         return result.get('text', '')
 
-    # 화자별로 정리
+    # Organize by speaker
     transcript = []
     for segment in result['segments']:
         speaker = segment.get('speaker', {}).get('label', 'Unknown')
         text = segment.get('text', '')
-        start_time = segment.get('start', 0) // 1000  # ms → s
+        start_time = segment.get('start', 0) // 1000  # ms -> s
 
-        # 타임스탬프 포맷 (00:00)
+        # Timestamp format (00:00)
         minutes = start_time // 60
         seconds = start_time % 60
         timestamp = f"[{minutes:02d}:{seconds:02d}]"
 
-        transcript.append(f"{timestamp} [화자{speaker}]: {text}")
+        transcript.append(f"{timestamp} [Speaker{speaker}]: {text}")
 
     return "\n".join(transcript)

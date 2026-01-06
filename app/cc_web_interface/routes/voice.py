@@ -1,6 +1,6 @@
 """
 Voice Routes
-음성 입력 WebSocket 및 관련 라우트
+Voice input WebSocket and related routes
 """
 
 import logging
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/ws", tags=["voice"])
 
 @router.websocket("/voice")
 async def websocket_voice(websocket: WebSocket):
-    """음성 입력 WebSocket 엔드포인트"""
+    """Voice input WebSocket endpoint"""
     await websocket.accept()
 
     settings = get_settings()
@@ -27,13 +27,13 @@ async def websocket_voice(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
 
-            # 프론트엔드에서 voice_text 타입으로 전송
+            # Frontend sends voice_text type
             if data.get("type") == "voice_text":
                 message = data.get("text", "").strip()
                 user_info = data.get("user", {})
 
                 if message and user_info:
-                    # 사용자 이메일로 Slack user_id 조회
+                    # Look up Slack user_id by user email
                     user_email = user_info.get("email")
                     user_name = user_info.get("name", "Unknown")
 
@@ -41,22 +41,22 @@ async def websocket_voice(websocket: WebSocket):
                         logger.warning(f"[VOICE] No email in user_info: {user_info}")
                         await websocket.send_json({
                             "type": "error",
-                            "message": "사용자 이메일 정보가 없습니다. 다시 로그인해주세요."
+                            "message": "User email information is missing. Please log in again."
                         })
                         continue
 
-                    # 이메일로 Slack user_id 조회
+                    # Look up Slack user_id by email
                     slack_user_id = await get_slack_user_id(user_email, slack_client)
 
                     if not slack_user_id:
                         logger.error(f"[VOICE] Failed to get Slack user ID for email: {user_email}")
                         await websocket.send_json({
                             "type": "error",
-                            "message": "Slack 사용자를 찾을 수 없습니다."
+                            "message": "Could not find Slack user."
                         })
                         continue
 
-                    # DM 채널 ID 가져오기
+                    # Get DM channel ID
                     try:
                         dm_response = await slack_client.conversations_open(users=[slack_user_id])
                         dm_channel_id = dm_response["channel"]["id"]
@@ -64,13 +64,13 @@ async def websocket_voice(websocket: WebSocket):
                         logger.error(f"[VOICE] Failed to get DM channel: {e}")
                         await websocket.send_json({
                             "type": "error",
-                            "message": "Slack DM 채널을 열 수 없습니다."
+                            "message": "Could not open Slack DM channel."
                         })
                         continue
 
                     logger.info(f"[VOICE] Received from {user_name}({slack_user_id}): {message[:50]}...")
 
-                    # 메시지 큐에 추가 (실제 DM 채널 사용)
+                    # Add to message queue (using actual DM channel)
                     await enqueue_message({
                         "text": message,
                         "channel": dm_channel_id,
@@ -81,7 +81,7 @@ async def websocket_voice(websocket: WebSocket):
 
                     await websocket.send_json({
                         "type": "processed",
-                        "message": f"'{message[:30]}...' 처리 중"
+                        "message": f"Processing '{message[:30]}...'"
                     })
 
     except WebSocketDisconnect:

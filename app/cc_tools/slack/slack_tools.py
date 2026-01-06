@@ -1,6 +1,6 @@
 """
 Slack Tools for Claude Code SDK
-Claude가 직접 Slack API를 사용할 수 있는 도구
+Tools for Claude to directly use the Slack API
 """
 
 import json
@@ -17,7 +17,7 @@ from app.config.settings import get_settings
 
 
 def get_slack_client() -> AsyncWebClient:
-    """Slack AsyncWebClient 인스턴스 반환"""
+    """Return Slack AsyncWebClient instance"""
     settings = get_settings()
     token = settings.SLACK_BOT_TOKEN
     if not token:
@@ -28,28 +28,28 @@ def get_slack_client() -> AsyncWebClient:
 
 @tool(
     "add_reaction",
-    "메시지에 이모지 리액션을 추가합니다.",
+    "Adds an emoji reaction to a message.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "메시지가 있는 채널 ID"
+                "description": "Channel ID where the message is located"
             },
             "timestamp": {
                 "type": "string",
-                "description": "메시지의 타임스탬프 (예: 1234567890.123456)"
+                "description": "Message timestamp (e.g., 1234567890.123456)"
             },
             "reaction": {
                 "type": "string",
-                "description": "리액션 이모지 이름 (콜론 없이, 예: 'thumbsup', 'heart', 'smile')"
+                "description": "Reaction emoji name (without colons, e.g., 'thumbsup', 'heart', 'smile')"
             }
         },
         "required": ["channel_id", "timestamp", "reaction"]
     }
 )
 async def slack_add_reaction(args: Dict[str, Any]) -> Dict[str, Any]:
-    """메시지에 리액션 추가"""
+    """Add reaction to a message"""
     channel_id = args["channel_id"]
     timestamp = args["timestamp"]
     reaction = args["reaction"]
@@ -68,7 +68,7 @@ async def slack_add_reaction(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": True,
-                        "message": f"리액션 '{reaction}' 추가 완료"
+                        "message": f"Reaction '{reaction}' added successfully"
                     }, ensure_ascii=False, indent=2)
                 }]
             }
@@ -79,7 +79,7 @@ async def slack_add_reaction(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "리액션 추가 실패"
+                        "message": "Failed to add reaction"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -92,7 +92,7 @@ async def slack_add_reaction(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -101,7 +101,7 @@ async def slack_add_reaction(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "answer_with_emoji",
-    "원 요청자의 메시지에 이모지 리액션을 달아 간단히 응답합니다. 텍스트 답변 대신 '확인했어요' 표시용으로 사용하세요.",
+    "Adds an emoji reaction to the original requester's message as a simple acknowledgment instead of a text response.",
     {
         "type": "object",
         "properties": {
@@ -115,14 +115,14 @@ async def slack_add_reaction(args: Dict[str, Any]) -> Dict[str, Any]:
             },
             "reaction": {
                 "type": "string",
-                "description": "추가할 이모지 이름 (콜론 없이). 기본값: 'white_check_mark' (✅)"
+                "description": "Emoji name to add (without colons). Default: 'white_check_mark' (✅)"
             }
         },
         "required": ["channel_id", "message_ts"]
     }
 )
 async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
-    """원 요청자의 메시지에 이모지 리액션 추가"""
+    """Add emoji reaction to the original requester's message"""
     channel_id = args["channel_id"]
     message_ts = args["message_ts"]
     reaction = args.get("reaction", "white_check_mark")
@@ -141,7 +141,7 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": True,
-                        "message": f"이모지 리액션 '{reaction}' 추가 완료",
+                        "message": f"Emoji reaction '{reaction}' added successfully",
                         "channel": channel_id,
                         "timestamp": message_ts
                     }, ensure_ascii=False, indent=2)
@@ -154,7 +154,7 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "리액션 추가 실패"
+                        "message": "Failed to add reaction"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -167,7 +167,7 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -179,7 +179,7 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"오류: {str(e)}"
+                    "message": f"Error: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -188,7 +188,7 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "answer",
-    "원 요청자에게 텍스트 답변을 보냅니다. 채널 타입에 따라 자동으로 적절한 위치(스레드/채널)를 결정합니다. 여러 번 호출 가능합니다.",
+    "Sends a text response to the original requester. Automatically determines the appropriate location (thread/channel) based on channel type. Can be called multiple times.",
     {
         "type": "object",
         "properties": {
@@ -198,7 +198,7 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
             },
             "text": {
                 "type": "string",
-                "description": "보낼 텍스트 메시지 내용"
+                "description": "Text message content to send"
             },
             "channel_type": {
                 "type": "string",
@@ -210,14 +210,14 @@ async def slack_answer_with_emoji(args: Dict[str, Any]) -> Dict[str, Any]:
             },
             "thread_ts": {
                 "type": "string",
-                "description": "state_data.current_message.thread_ts (있는 경우만)"
+                "description": "state_data.current_message.thread_ts (if available)"
             }
         },
         "required": ["channel_id", "text", "channel_type", "message_ts"]
     }
 )
 async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
-    """원 요청자에게 텍스트 답변 전송"""
+    """Send text response to the original requester"""
     channel_id = args["channel_id"]
     text = args["text"]
     channel_type = args["channel_type"]
@@ -227,17 +227,17 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
     try:
         client = get_slack_client()
 
-        # channel_type에 따라 thread_ts 계산
+        # Calculate thread_ts based on channel_type
         if channel_type in ["public_channel", "private_channel", "group_dm"]:
-            # 그룹 채널: 무조건 스레드로 답변
+            # Group channels: always reply in thread
             final_thread_ts = thread_ts or message_ts
         elif channel_type in ["dm"]:
-            # DM/그룹 DM: thread_ts가 있으면 스레드로, 없으면 일반 메시지
+            # DM/Group DM: use thread if exists, otherwise send as regular message
             final_thread_ts = thread_ts
         else:
             final_thread_ts = None
 
-        # 메시지 전송
+        # Send message
         post_params = {
             "channel": channel_id,
             "text": text
@@ -254,7 +254,7 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": True,
-                        "message": "답변 전송 완료",
+                        "message": "Response sent successfully",
                         "channel": channel_id,
                         "ts": response.get("ts"),
                         "thread_ts": final_thread_ts
@@ -269,7 +269,7 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": f"메시지 전송 실패: {error_msg}"
+                        "message": f"Failed to send message: {error_msg}"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -282,7 +282,7 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -294,7 +294,7 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"오류: {str(e)}"
+                    "message": f"Error: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -303,35 +303,35 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "forward_message",
-    "다른 사람/채널에게 메시지를 전달합니다. 여러 명에게 같은 내용을 보낼 때는 respondents에 모두 포함해서 단 1회만 호출하세요. 중복 호출 절대 금지!",
+    "Forwards a message to another person/channel. When sending the same content to multiple people, include all recipients in respondents and call only once. Duplicate calls are strictly prohibited!",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "메시지를 보낼 Slack 채널 ID (예: C12345) 또는 사용자 DM ID (예: D12345)"
+                "description": "Slack channel ID to send message to (e.g., C12345) or user DM ID (e.g., D12345)"
             },
             "text": {
                 "type": "string",
-                "description": "전송할 메시지 내용"
+                "description": "Message content to send"
             },
             "request_answer": {
                 "type": "boolean",
-                "description": "답변을 받아야 하는 경우 True로 설정. False면 단순 메시지만 전송합니다. (기본값: False)"
+                "description": "Set to True if a response is needed. If False, only sends the message. (Default: False)"
             },
             "respondents": {
                 "type": "array",
-                "description": "답변을 받을 사람들의 목록. request_answer=True일 때 필수입니다. 여러 명에게 같은 질문을 할 때는 모든 사용자를 이 배열에 포함하여 단 1회만 호출하세요. 중복 호출 금지! 각 항목은 user_id와 name을 포함해야 합니다.",
+                "description": "List of people to receive responses from. Required when request_answer=True. When asking the same question to multiple people, include all users in this array and call only once. Duplicate calls prohibited! Each item must include user_id and name.",
                 "items": {
                     "type": "object",
                     "properties": {
                         "user_id": {
                             "type": "string",
-                            "description": "응답자의 Slack User ID (예: U1234567890)"
+                            "description": "Respondent's Slack User ID (e.g., U1234567890)"
                         },
                         "name": {
                             "type": "string",
-                            "description": "응답자의 이름"
+                            "description": "Respondent's name"
                         }
                     },
                     "required": ["user_id", "name"]
@@ -339,18 +339,18 @@ async def slack_answer(args: Dict[str, Any]) -> Dict[str, Any]:
             },
             "requester_id": {
                 "type": "string",
-                "description": "답변을 요청한 사람의 Slack User ID. request_answer=True일 때 필수입니다. state_data.current_message.user_id에서 가져오세요."
+                "description": "Slack User ID of the person requesting the response. Required when request_answer=True. Get from state_data.current_message.user_id."
             },
             "requester_name": {
                 "type": "string",
-                "description": "답변을 요청한 사람의 이름. request_answer=True일 때 필수입니다. state_data.current_message.user_name에서 가져오세요."
+                "description": "Name of the person requesting the response. Required when request_answer=True. Get from state_data.current_message.user_name."
             }
         },
         "required": ["channel_id", "text"]
     }
 )
 async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
-    """다른 사람에게 메시지 전달 + 선택적 응답 대기 등록"""
+    """Forward message to another person + optional response waiting registration"""
     channel_id = args.get("channel_id")
     text = args["text"]
     request_answer = args.get("request_answer", False)
@@ -361,7 +361,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
     try:
         client = get_slack_client()
 
-        # request_answer=True인 경우: respondents 각자에게 DM 전송
+        # When request_answer=True: send DM to each respondent
         if request_answer:
             if not respondents or not requester_id or not requester_name:
                 return {
@@ -370,34 +370,34 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
                         "text": json.dumps({
                             "success": False,
                             "error": True,
-                            "message": "request_answer=True일 때는 respondents, requester_id, requester_name이 필수입니다."
+                            "message": "respondents, requester_id, and requester_name are required when request_answer=True."
                         }, ensure_ascii=False, indent=2)
                     }],
                     "error": True
                 }
 
-            # 하나의 request_id 생성
+            # Generate a single request_id
             import uuid
             from app.cc_utils.waiting_answer_db import add_request
 
             request_id = str(uuid.uuid4())[:8]
 
-            # 각 respondent에게 DM 전송
+            # Send DM to each respondent
             sent_channels = []
             for respondent in respondents:
                 user_id = respondent.get("user_id")
-                # DM 채널 열기
+                # Open DM channel
                 dm_response = await client.conversations_open(users=user_id)
                 dm_channel_id = dm_response["channel"]["id"]
 
-                # 메시지 전송
+                # Send message
                 await client.chat_postMessage(
                     channel=dm_channel_id,
                     text=text
                 )
                 sent_channels.append(dm_channel_id)
 
-            # waiting_answer에 등록 (모든 respondents를 하나의 request_id로)
+            # Register in waiting_answer (all respondents under one request_id)
             count = add_request(
                 request_id=request_id,
                 channel_id=sent_channels[0] if sent_channels else "unknown",
@@ -409,7 +409,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
 
             result = {
                 "success": True,
-                "message": f"{len(respondents)}명에게 메시지 전송 및 응답 대기 등록 완료",
+                "message": f"Message sent to {len(respondents)} people and response waiting registered",
                 "sent_to": [r.get("name") for r in respondents],
                 "waiting_answer": {
                     "registered": True,
@@ -418,7 +418,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
                 }
             }
 
-        # request_answer=False인 경우: channel_id에 메시지만 전송
+        # When request_answer=False: just send message to channel_id
         else:
             if not channel_id:
                 return {
@@ -427,7 +427,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
                         "text": json.dumps({
                             "success": False,
                             "error": True,
-                            "message": "request_answer=False일 때는 channel_id가 필수입니다."
+                            "message": "channel_id is required when request_answer=False."
                         }, ensure_ascii=False, indent=2)
                     }],
                     "error": True
@@ -440,7 +440,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
 
             result = {
                 "success": True,
-                "message": "메시지 전송 완료",
+                "message": "Message sent successfully",
                 "channel": response["channel"],
                 "ts": response["ts"]
             }
@@ -459,7 +459,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -471,7 +471,7 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"오류: {str(e)}"
+                    "message": f"Error: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -480,28 +480,28 @@ async def slack_forward_message(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "reply_to_thread",
-    "Slack 스레드에 답글을 답니다.",
+    "Replies to a Slack thread.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "스레드가 있는 채널 ID"
+                "description": "Channel ID where the thread is located"
             },
             "thread_ts": {
                 "type": "string",
-                "description": "스레드의 타임스탬프 (예: 1234567890.123456)"
+                "description": "Thread timestamp (e.g., 1234567890.123456)"
             },
             "text": {
                 "type": "string",
-                "description": "답글 내용"
+                "description": "Reply content"
             }
         },
         "required": ["channel_id", "thread_ts", "text"]
     }
 )
 async def slack_reply_to_thread(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Slack 스레드에 답글"""
+    """Reply to Slack thread"""
     channel_id = args["channel_id"]
     thread_ts = args["thread_ts"]
     text = args["text"]
@@ -519,7 +519,7 @@ async def slack_reply_to_thread(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": "스레드 답글 전송 완료",
+                    "message": "Thread reply sent successfully",
                     "channel": response["channel"],
                     "ts": response["ts"],
                     "thread_ts": response["thread_ts"]
@@ -534,7 +534,7 @@ async def slack_reply_to_thread(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -543,7 +543,7 @@ async def slack_reply_to_thread(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "upload_file",
-    "로컬 파일을 원 요청자에게 업로드합니다. 채널 타입에 따라 자동으로 적절한 위치(스레드/채널)를 결정합니다. 여러 번 호출 가능합니다.",
+    "Uploads a local file to the original requester. Automatically determines the appropriate location (thread/channel) based on channel type. Can be called multiple times.",
     {
         "type": "object",
         "properties": {
@@ -553,7 +553,7 @@ async def slack_reply_to_thread(args: Dict[str, Any]) -> Dict[str, Any]:
             },
             "file_path": {
                 "type": "string",
-                "description": "업로드할 로컬 파일의 절대 경로 (예: FILESYSTEM_BASE_DIR/tmp/report.pdf)"
+                "description": "Absolute path of the local file to upload (e.g., FILESYSTEM_BASE_DIR/tmp/report.pdf)"
             },
             "channel_type": {
                 "type": "string",
@@ -565,18 +565,18 @@ async def slack_reply_to_thread(args: Dict[str, Any]) -> Dict[str, Any]:
             },
             "thread_ts": {
                 "type": "string",
-                "description": "state_data.current_message.thread_ts (있는 경우만)"
+                "description": "state_data.current_message.thread_ts (if available)"
             },
             "initial_comment": {
                 "type": "string",
-                "description": "파일과 함께 보낼 메시지 (선택사항)"
+                "description": "Message to send with the file (optional)"
             }
         },
         "required": ["channel_id", "file_path", "channel_type", "message_ts"]
     }
 )
 async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Slack 파일 업로드"""
+    """Slack file upload"""
     channel_id = args["channel_id"]
     file_path = args["file_path"]
     channel_type = args["channel_type"]
@@ -593,7 +593,7 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": f"파일이 존재하지 않습니다: {file_path}"
+                        "message": f"File does not exist: {file_path}"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -601,12 +601,12 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
 
         client = get_slack_client()
 
-        # channel_type에 따라 thread_ts 계산
+        # Calculate thread_ts based on channel_type
         if channel_type in ["public_channel", "private_channel", "group_dm"]:
-            # 그룹 채널: 무조건 스레드로 업로드
+            # Group channels: always upload to thread
             final_thread_ts = thread_ts or message_ts
         elif channel_type in ["dm"]:
-            # DM/그룹 DM: thread_ts가 있으면 스레드로, 없으면 일반 메시지
+            # DM/Group DM: use thread if exists, otherwise send as regular message
             final_thread_ts = thread_ts
         else:
             final_thread_ts = None
@@ -631,7 +631,7 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": True,
-                        "message": "파일 업로드 완료",
+                        "message": "File uploaded successfully",
                         "file_id": file_info.get("id"),
                         "file_name": file_info.get("name"),
                         "permalink": file_info.get("permalink")
@@ -646,7 +646,7 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": f"파일 업로드 실패: {error_msg}"
+                        "message": f"File upload failed: {error_msg}"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -659,7 +659,7 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -671,7 +671,7 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"오류: {str(e)}"
+                    "message": f"Error: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -680,34 +680,34 @@ async def slack_upload_file(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "download_file_to_channel",
-    "Slack 파일을 채널별 폴더에 다운로드합니다. 다운로드된 파일은 FILESYSTEM_BASE_DIR/files/{channel_id}/ 에 저장됩니다.",
+    "Downloads a Slack file to a channel-specific folder. Downloaded files are saved to FILESYSTEM_BASE_DIR/files/{channel_id}/.",
     {
         "type": "object",
         "properties": {
             "url_private": {
                 "type": "string",
-                "description": "Slack 파일의 private URL"
+                "description": "Private URL of the Slack file"
             },
             "channel_id": {
                 "type": "string",
-                "description": "Slack 채널 ID"
+                "description": "Slack channel ID"
             },
             "filename": {
                 "type": "string",
-                "description": "저장할 파일명 (선택, 기본값은 URL에서 추출)"
+                "description": "Filename to save as (optional, defaults to extracting from URL)"
             }
         },
         "required": ["url_private", "channel_id"]
     }
 )
 async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Slack 파일을 채널별 폴더에 다운로드"""
+    """Download Slack file to channel-specific folder"""
     url_private = args["url_private"]
     channel_id = args["channel_id"]
     filename = args.get("filename")
 
     try:
-        # URL에서 파일명 추출
+        # Extract filename from URL
         if not filename:
             url_parts = url_private.split("/")
             for part in reversed(url_parts):
@@ -718,7 +718,7 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
             if not filename:
                 filename = "downloaded_file"
 
-        # Slack 인증 헤더로 파일 다운로드
+        # Download file with Slack auth header
         settings = get_settings()
         headers = {"Authorization": f"Bearer {settings.SLACK_BOT_TOKEN}"}
         chunk_size = 1_048_576  # 1MB chunks
@@ -727,7 +727,7 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
             async with client.stream("GET", url_private, timeout=None) as resp:
                 resp.raise_for_status()
 
-                # FILESYSTEM_BASE_DIR/files/{channel_id} 디렉토리에 저장
+                # Save to FILESYSTEM_BASE_DIR/files/{channel_id} directory
                 base_dir = settings.FILESYSTEM_BASE_DIR or os.getcwd()
                 channel_dir = Path(base_dir) / "files" / channel_id
                 channel_dir.mkdir(parents=True, exist_ok=True)
@@ -738,7 +738,7 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
                         if chunk:
                             f.write(chunk)
 
-        # 파일 크기 확인
+        # Check file size
         file_size = file_path.stat().st_size
         file_size_mb = round(file_size / (1024 * 1024), 2)
 
@@ -747,7 +747,7 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": "파일 다운로드 완료",
+                    "message": "File downloaded successfully",
                     "filename": filename,
                     "file_path": str(file_path),
                     "file_size_bytes": file_size,
@@ -763,7 +763,7 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"HTTP 오류: {e.response.status_code}"
+                    "message": f"HTTP error: {e.response.status_code}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -775,7 +775,7 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"오류: {str(e)}"
+                    "message": f"Error: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -784,36 +784,36 @@ async def slack_download_file_to_channel(args: Dict[str, Any]) -> Dict[str, Any]
 
 @tool(
     "transfer_file",
-    "로컬 파일 또는 Slack 파일을 다른 채널이나 사용자에게 전송합니다.",
+    "Transfers a local file or Slack file to another channel or user.",
     {
         "type": "object",
         "properties": {
             "channel_or_user_id": {
                 "type": "string",
-                "description": "파일을 전송할 채널 ID (C로 시작) 또는 DM ID (D로 시작)"
+                "description": "Channel ID (starts with C) or DM ID (starts with D) to send the file to"
             },
             "file_url": {
                 "type": "string",
-                "description": "로컬 파일 경로 (file:// 또는 절대 경로), Slack url_private, 또는 외부 파일 URL"
+                "description": "Local file path (file:// or absolute path), Slack url_private, or external file URL"
             },
             "filename": {
                 "type": "string",
-                "description": "전송할 파일명"
+                "description": "Filename to transfer"
             },
             "thread_ts": {
                 "type": "string",
-                "description": "스레드 타임스탬프 (스레드 내 업로드 시)"
+                "description": "Thread timestamp (for uploading within a thread)"
             },
             "initial_comment": {
                 "type": "string",
-                "description": "파일과 함께 보낼 메시지"
+                "description": "Message to send with the file"
             }
         },
         "required": ["channel_or_user_id", "file_url", "filename"]
     }
 )
 async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
-    """로컬 파일 또는 Slack 파일 전송"""
+    """Transfer local file or Slack file"""
     channel_or_user_id = args["channel_or_user_id"]
     file_url = args["file_url"]
     filename = args["filename"]
@@ -821,20 +821,20 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
     initial_comment = args.get("initial_comment")
 
     try:
-        # 로컬 파일 경로인지 확인
+        # Check if it's a local file path
         is_local_file = False
         local_file_path = None
 
-        # file:// 프로토콜 제거
+        # Remove file:// protocol
         if file_url.startswith("file://"):
             local_file_path = Path(file_url.replace("file://", ""))
             is_local_file = True
-        # 절대 경로인 경우 (/, ~/, ./ 등으로 시작)
+        # If it's an absolute path (starts with /, ~/, ./, etc.)
         elif not file_url.startswith("http://") and not file_url.startswith("https://"):
             local_file_path = Path(file_url)
             is_local_file = True
 
-        # 로컬 파일인 경우
+        # If it's a local file
         if is_local_file:
             if not local_file_path.exists():
                 return {
@@ -843,13 +843,13 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
                         "text": json.dumps({
                             "success": False,
                             "error": True,
-                            "message": f"파일이 존재하지 않습니다: {local_file_path}"
+                            "message": f"File does not exist: {local_file_path}"
                         }, ensure_ascii=False, indent=2)
                     }],
                     "error": True
                 }
 
-            # 직접 업로드
+            # Direct upload
             client = get_slack_client()
             upload_params = {
                 "channel": channel_or_user_id,
@@ -863,7 +863,7 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
 
             response = await client.files_upload_v2(**upload_params)
 
-        # HTTP/HTTPS URL인 경우 (기존 로직)
+        # If it's an HTTP/HTTPS URL (existing logic)
         else:
             settings = get_settings()
             headers = {"Authorization": f"Bearer {settings.SLACK_BOT_TOKEN}"}
@@ -872,14 +872,14 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
                 async with http_client.stream("GET", file_url, timeout=None) as resp:
                     resp.raise_for_status()
 
-                    # 임시 파일로 저장
+                    # Save to temp file
                     temp_file = Path("/tmp") / filename
                     with open(temp_file, "wb") as f:
                         async for chunk in resp.aiter_bytes(1_048_576):
                             if chunk:
                                 f.write(chunk)
 
-            # 파일 업로드
+            # Upload file
             client = get_slack_client()
             upload_params = {
                 "channel": channel_or_user_id,
@@ -893,7 +893,7 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
 
             response = await client.files_upload_v2(**upload_params)
 
-            # 임시 파일 삭제
+            # Delete temp file
             temp_file.unlink()
 
         if response and response.get("ok"):
@@ -903,7 +903,7 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": True,
-                        "message": "파일 전송 완료",
+                        "message": "File transferred successfully",
                         "file_id": file_info.get("id"),
                         "file_name": file_info.get("name"),
                         "permalink": file_info.get("permalink")
@@ -918,7 +918,7 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": f"파일 전송 실패: {error_msg}"
+                        "message": f"File transfer failed: {error_msg}"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -931,29 +931,29 @@ async def slack_transfer_file(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"오류: {str(e)}"
+                    "message": f"Error: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
         }
-    
+
 
 @tool(
     "get_user_profile",
-    "Slack 사용자 프로필 정보를 조회합니다.",
+    "Retrieves Slack user profile information.",
     {
         "type": "object",
         "properties": {
             "user_id": {
                 "type": "string",
-                "description": "Slack 사용자 ID (예: U1234567890)"
+                "description": "Slack user ID (e.g., U1234567890)"
             }
         },
         "required": ["user_id"]
     }
 )
 async def slack_get_user_profile(args: Dict[str, Any]) -> Dict[str, Any]:
-    """Slack 사용자 프로필 조회"""
+    """Get Slack user profile"""
     user_id = args["user_id"]
 
     try:
@@ -984,7 +984,7 @@ async def slack_get_user_profile(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "사용자 정보 조회 실패"
+                        "message": "Failed to retrieve user information"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -997,7 +997,7 @@ async def slack_get_user_profile(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1006,24 +1006,24 @@ async def slack_get_user_profile(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_thread_replies",
-    "스레드의 모든 답글을 조회합니다.",
+    "Retrieves all replies in a thread.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "스레드가 있는 채널 ID"
+                "description": "Channel ID where the thread is located"
             },
             "thread_ts": {
                 "type": "string",
-                "description": "스레드의 타임스탬프 (예: 1234567890.123456)"
+                "description": "Thread timestamp (e.g., 1234567890.123456)"
             }
         },
         "required": ["channel_id", "thread_ts"]
     }
 )
 async def slack_get_thread_replies(args: Dict[str, Any]) -> Dict[str, Any]:
-    """스레드 답글 조회"""
+    """Get thread replies"""
     channel_id = args["channel_id"]
     thread_ts = args["thread_ts"]
 
@@ -1053,7 +1053,7 @@ async def slack_get_thread_replies(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "스레드 답글 조회 실패"
+                        "message": "Failed to retrieve thread replies"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1066,7 +1066,7 @@ async def slack_get_thread_replies(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1075,32 +1075,32 @@ async def slack_get_thread_replies(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_channel_history",
-    "채널의 메시지 히스토리를 조회합니다.",
+    "Retrieves message history from a channel.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "메시지를 조회할 채널 ID"
+                "description": "Channel ID to retrieve messages from"
             },
             "limit": {
                 "type": "integer",
-                "description": "조회할 메시지 수 (기본값: 10, 최대: 100)"
+                "description": "Number of messages to retrieve (default: 10, max: 100)"
             },
             "oldest": {
                 "type": "string",
-                "description": "이 타임스탬프 이후의 메시지만 조회 (예: 1234567890.123456)"
+                "description": "Only retrieve messages after this timestamp (e.g., 1234567890.123456)"
             },
             "latest": {
                 "type": "string",
-                "description": "이 타임스탬프 이전의 메시지만 조회 (예: 1234567890.123456)"
+                "description": "Only retrieve messages before this timestamp (e.g., 1234567890.123456)"
             }
         },
         "required": ["channel_id"]
     }
 )
 async def slack_get_channel_history(args: Dict[str, Any]) -> Dict[str, Any]:
-    """채널 히스토리 조회"""
+    """Get channel history"""
     channel_id = args["channel_id"]
     limit = args.get("limit", 10)
     oldest = args.get("oldest")
@@ -1141,7 +1141,7 @@ async def slack_get_channel_history(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "채널 히스토리 조회 실패"
+                        "message": "Failed to retrieve channel history"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1154,7 +1154,7 @@ async def slack_get_channel_history(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1163,20 +1163,20 @@ async def slack_get_channel_history(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_usergroup_members",
-    "유저그룹의 멤버 목록을 조회합니다.",
+    "Retrieves the member list of a usergroup.",
     {
         "type": "object",
         "properties": {
             "usergroup_id": {
                 "type": "string",
-                "description": "유저그룹 ID (예: S1234567890). 태그 형식에서 추출한 ID"
+                "description": "Usergroup ID (e.g., S1234567890). ID extracted from tag format"
             }
         },
         "required": ["usergroup_id"]
     }
 )
 async def slack_get_usergroup_members(args: Dict[str, Any]) -> Dict[str, Any]:
-    """유저그룹 멤버 조회"""
+    """Get usergroup members"""
     usergroup_id = args["usergroup_id"]
 
     try:
@@ -1203,7 +1203,7 @@ async def slack_get_usergroup_members(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "유저그룹 멤버 조회 실패"
+                        "message": "Failed to retrieve usergroup members"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1216,7 +1216,7 @@ async def slack_get_usergroup_members(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1225,24 +1225,24 @@ async def slack_get_usergroup_members(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_permalink",
-    "특정 메시지의 permalink를 조회합니다.",
+    "Retrieves the permalink for a specific message.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "메시지가 있는 채널 ID"
+                "description": "Channel ID where the message is located"
             },
             "message_ts": {
                 "type": "string",
-                "description": "메시지의 타임스탬프 (예: 1234567890.123456)"
+                "description": "Message timestamp (e.g., 1234567890.123456)"
             }
         },
         "required": ["channel_id", "message_ts"]
     }
 )
 async def slack_get_permalink(args: Dict[str, Any]) -> Dict[str, Any]:
-    """메시지 permalink 조회"""
+    """Get message permalink"""
     channel_id = args["channel_id"]
     message_ts = args["message_ts"]
 
@@ -1273,7 +1273,7 @@ async def slack_get_permalink(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "Permalink 조회 실패"
+                        "message": "Failed to retrieve permalink"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1286,7 +1286,7 @@ async def slack_get_permalink(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1295,20 +1295,20 @@ async def slack_get_permalink(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_dm_channel_id",
-    "특정 사용자와의 DM 채널 ID를 조회합니다.",
+    "Retrieves the DM channel ID for a specific user.",
     {
         "type": "object",
         "properties": {
             "user_id": {
                 "type": "string",
-                "description": "DM을 보낼 Slack 사용자 ID (예: U1234567890)"
+                "description": "Slack user ID to send DM to (e.g., U1234567890)"
             }
         },
         "required": ["user_id"]
     }
 )
 async def slack_get_dm_channel_id(args: Dict[str, Any]) -> Dict[str, Any]:
-    """사용자와의 DM 채널 ID 조회"""
+    """Get DM channel ID for a user"""
     user_id = args["user_id"]
 
     try:
@@ -1326,7 +1326,7 @@ async def slack_get_dm_channel_id(args: Dict[str, Any]) -> Dict[str, Any]:
                         "success": True,
                         "user_id": user_id,
                         "dm_channel_id": channel_id,
-                        "message": f"사용자 {user_id}와의 DM 채널 ID: {channel_id}"
+                        "message": f"DM channel ID for user {user_id}: {channel_id}"
                     }, ensure_ascii=False, indent=2)
                 }]
             }
@@ -1337,7 +1337,7 @@ async def slack_get_dm_channel_id(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "DM 채널 ID 조회 실패"
+                        "message": "Failed to retrieve DM channel ID"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1350,7 +1350,7 @@ async def slack_get_dm_channel_id(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1359,20 +1359,20 @@ async def slack_get_dm_channel_id(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "find_user_by_name",
-    "이름으로 Slack 사용자를 검색하여 user_id를 찾습니다.",
+    "Searches for a Slack user by name and returns their user_id.",
     {
         "type": "object",
         "properties": {
             "name": {
                 "type": "string",
-                "description": "검색할 사용자 이름 (real_name 또는 display_name)"
+                "description": "User name to search for (real_name or display_name)"
             }
         },
         "required": ["name"]
     }
 )
 async def slack_find_user_by_name(args: Dict[str, Any]) -> Dict[str, Any]:
-    """이름으로 사용자 검색"""
+    """Search user by name"""
     search_name = args["name"].strip().lower()
 
     try:
@@ -1407,7 +1407,7 @@ async def slack_find_user_by_name(args: Dict[str, Any]) -> Dict[str, Any]:
                             "success": True,
                             "matches": matches,
                             "count": len(matches),
-                            "message": f"{len(matches)}명의 사용자를 찾았습니다"
+                            "message": f"Found {len(matches)} user(s)"
                         }, ensure_ascii=False, indent=2)
                     }]
                 }
@@ -1419,7 +1419,7 @@ async def slack_find_user_by_name(args: Dict[str, Any]) -> Dict[str, Any]:
                             "success": False,
                             "matches": [],
                             "count": 0,
-                            "message": f"'{args['name']}'과 일치하는 사용자를 찾을 수 없습니다"
+                            "message": f"No users found matching '{args['name']}'"
                         }, ensure_ascii=False, indent=2)
                     }]
                 }
@@ -1430,7 +1430,7 @@ async def slack_find_user_by_name(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "사용자 목록 조회 실패"
+                        "message": "Failed to retrieve user list"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1443,7 +1443,7 @@ async def slack_find_user_by_name(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1452,20 +1452,20 @@ async def slack_find_user_by_name(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_channel_info",
-    "채널 정보를 조회합니다.",
+    "Retrieves channel information.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "Slack 채널 ID (예: C1234567890)"
+                "description": "Slack channel ID (e.g., C1234567890)"
             }
         },
         "required": ["channel_id"]
     }
 )
 async def slack_get_channel_info(args: Dict[str, Any]) -> Dict[str, Any]:
-    """채널 정보 조회"""
+    """Get channel information"""
     channel_id = args["channel_id"]
 
     try:
@@ -1496,7 +1496,7 @@ async def slack_get_channel_info(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "채널 정보 조회 실패"
+                        "message": "Failed to retrieve channel information"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1509,7 +1509,7 @@ async def slack_get_channel_info(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1518,28 +1518,28 @@ async def slack_get_channel_info(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "create_canvas",
-    "채널에 새로운 캔버스를 생성합니다.",
+    "Creates a new canvas in a channel.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "캔버스를 생성할 채널 ID (예: C1234567890)"
+                "description": "Channel ID to create the canvas in (e.g., C1234567890)"
             },
             "title": {
                 "type": "string",
-                "description": "캔버스 제목"
+                "description": "Canvas title"
             },
             "content": {
                 "type": "string",
-                "description": "캔버스 내용 (Markdown 형식)"
+                "description": "Canvas content (Markdown format)"
             }
         },
         "required": ["channel_id", "title", "content"]
     }
 )
 async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
-    """채널에 캔버스 생성"""
+    """Create canvas in channel"""
     channel_id = args["channel_id"]
     title = args["title"]
     content = args["content"]
@@ -1547,7 +1547,7 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
     try:
         client = get_slack_client()
 
-        # 캔버스 생성
+        # Create canvas
         response = await client.canvases_create(
             title=title,
             document_content={
@@ -1559,7 +1559,7 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
         if response and response.get("ok"):
             canvas_id = response.get("canvas_id")
 
-            # 채널에 캔버스 공유
+            # Share canvas to channel
             share_response = await client.chat_postMessage(
                 channel=channel_id,
                 text=f"📄 {title}",
@@ -1574,7 +1574,7 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                             "type": "button",
                             "text": {
                                 "type": "plain_text",
-                                "text": "캔버스 열기"
+                                "text": "Open Canvas"
                             },
                             "url": f"slack://canvas/{canvas_id}"
                         }
@@ -1588,7 +1588,7 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": True,
                         "canvas_id": canvas_id,
-                        "message": f"캔버스 '{title}'가 생성되었습니다."
+                        "message": f"Canvas '{title}' has been created."
                     }, ensure_ascii=False, indent=2)
                 }]
             }
@@ -1599,7 +1599,7 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "캔버스 생성 실패"
+                        "message": "Failed to create canvas"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1612,7 +1612,7 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1621,26 +1621,26 @@ async def slack_create_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "list_channel_canvases",
-    "채널에 있는 캔버스 목록을 조회합니다.",
+    "Retrieves the list of canvases in a channel.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "캔버스를 조회할 채널 ID (예: C1234567890)"
+                "description": "Channel ID to retrieve canvases from (e.g., C1234567890)"
             }
         },
         "required": ["channel_id"]
     }
 )
 async def slack_list_channel_canvases(args: Dict[str, Any]) -> Dict[str, Any]:
-    """채널의 캔버스 목록 조회"""
+    """List channel canvases"""
     channel_id = args["channel_id"]
 
     try:
         client = get_slack_client()
 
-        # 채널의 메시지 히스토리에서 캔버스 찾기
+        # Find canvases in channel message history
         response = await client.conversations_history(
             channel=channel_id,
             limit=100
@@ -1651,13 +1651,13 @@ async def slack_list_channel_canvases(args: Dict[str, Any]) -> Dict[str, Any]:
             canvases = []
 
             for msg in messages:
-                # 캔버스가 첨부된 메시지 찾기
+                # Find messages with canvas attachments
                 files = msg.get("files", [])
                 for file in files:
                     if file.get("filetype") == "canvas":
                         canvases.append({
                             "canvas_id": file.get("id"),
-                            "title": file.get("title", "제목 없음"),
+                            "title": file.get("title", "Untitled"),
                             "created": file.get("created", 0),
                             "url": file.get("permalink", "")
                         })
@@ -1680,7 +1680,7 @@ async def slack_list_channel_canvases(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "채널 히스토리 조회 실패"
+                        "message": "Failed to retrieve channel history"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1693,7 +1693,7 @@ async def slack_list_channel_canvases(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1702,20 +1702,20 @@ async def slack_list_channel_canvases(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "get_canvas",
-    "캔버스의 내용을 조회합니다.",
+    "Retrieves the content of a canvas.",
     {
         "type": "object",
         "properties": {
             "canvas_id": {
                 "type": "string",
-                "description": "조회할 캔버스 ID"
+                "description": "Canvas ID to retrieve"
             }
         },
         "required": ["canvas_id"]
     }
 )
 async def slack_get_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
-    """캔버스 내용 조회"""
+    """Get canvas content"""
     canvas_id = args["canvas_id"]
 
     try:
@@ -1725,7 +1725,7 @@ async def slack_get_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
         if response and response.get("ok"):
             sections = response.get("sections", [])
 
-            # 섹션들의 내용을 Markdown으로 결합
+            # Combine section contents to Markdown
             content_parts = []
             for section in sections:
                 if section.get("section_type") == "any_header_block":
@@ -1752,7 +1752,7 @@ async def slack_get_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "캔버스 조회 실패"
+                        "message": "Failed to retrieve canvas"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1765,7 +1765,7 @@ async def slack_get_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -1774,31 +1774,31 @@ async def slack_get_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "edit_canvas",
-    "캔버스의 내용을 편집합니다.",
+    "Edits the content of a canvas.",
     {
         "type": "object",
         "properties": {
             "canvas_id": {
                 "type": "string",
-                "description": "편집할 캔버스 ID"
+                "description": "Canvas ID to edit"
             },
             "content": {
                 "type": "string",
-                "description": "새로운 캔버스 내용 (Markdown 형식)"
+                "description": "New canvas content (Markdown format)"
             }
         },
         "required": ["canvas_id", "content"]
     }
 )
 async def slack_edit_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
-    """캔버스 내용 편집"""
+    """Edit canvas content"""
     canvas_id = args["canvas_id"]
     content = args["content"]
 
     try:
         client = get_slack_client()
 
-        # 캔버스 편집
+        # Edit canvas
         response = await client.canvases_edit(
             canvas_id=canvas_id,
             changes=[
@@ -1819,7 +1819,7 @@ async def slack_edit_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": True,
                         "canvas_id": canvas_id,
-                        "message": "캔버스가 수정되었습니다."
+                        "message": "Canvas has been updated."
                     }, ensure_ascii=False, indent=2)
                 }]
             }
@@ -1830,7 +1830,7 @@ async def slack_edit_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "캔버스 편집 실패"
+                        "message": "Failed to edit canvas"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
@@ -1843,14 +1843,14 @@ async def slack_edit_canvas(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack API 오류: {e.response['error']}"
+                    "message": f"Slack API error: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
         }
 
 
-# MCP Server 생성
+# MCP Server creation
 slack_tools = [
     slack_add_reaction,
     slack_answer_with_emoji,
@@ -1876,7 +1876,7 @@ slack_tools = [
 
 
 def create_slack_mcp_server():
-    """Claude Code SDK용 Slack MCP 서버"""
+    """Slack MCP server for Claude Code SDK"""
     return create_sdk_mcp_server(
         name="slack",
         version="1.0.0",

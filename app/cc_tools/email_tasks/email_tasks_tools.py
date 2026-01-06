@@ -1,6 +1,6 @@
 """
 Email Tasks Tools for Claude Code SDK
-이메일에서 추출한 할 일을 관리하는 MCP 도구
+MCP tools for managing tasks extracted from emails
 """
 
 import json
@@ -13,53 +13,53 @@ from app.cc_utils.email_tasks_db import add_task
 
 @tool(
     "add_email_task",
-    "이메일에서 추출한 할 일을 추가합니다. 이메일을 분석하여 해야 할 작업이 있으면 이 도구를 사용하세요.",
+    "Adds a task extracted from an email. Use this tool when there are tasks to be done after analyzing an email.",
     {
         "type": "object",
         "properties": {
             "email_id": {
                 "type": "string",
-                "description": "이메일 ID"
+                "description": "Email ID"
             },
             "sender": {
                 "type": "string",
-                "description": "발신자 (이름 <이메일> 형식)"
+                "description": "Sender (Name <email> format)"
             },
             "subject": {
                 "type": "string",
-                "description": "이메일 제목"
+                "description": "Email subject"
             },
             "task_description": {
                 "type": "string",
-                "description": "할 일 설명 (구체적으로)"
+                "description": "Task description (be specific)"
             },
             "priority": {
                 "type": "string",
-                "description": "우선순위 (low/medium/high)",
+                "description": "Priority (low/medium/high)",
                 "enum": ["low", "medium", "high"]
             },
             "user_id": {
                 "type": "string",
-                "description": "알림을 받을 사용자 ID"
+                "description": "User ID to receive notification"
             },
             "user_name": {
                 "type": "string",
-                "description": "알림을 받을 사용자 이름 (권한 확인용)"
+                "description": "User name to receive notification (for authorization check)"
             },
             "text": {
                 "type": "string",
-                "description": "알림 메시지 내용"
+                "description": "Notification message content"
             },
             "channel_id": {
                 "type": "string",
-                "description": "알림을 보낼 채널 ID"
+                "description": "Channel ID to send notification to"
             }
         },
         "required": ["email_id", "sender", "subject", "task_description", "user_id", "user_name", "text", "channel_id"]
     }
 )
 async def email_tasks_add_task(args: Dict[str, Any]) -> Dict[str, Any]:
-    """이메일에서 추출한 할 일 추가"""
+    """Add task extracted from email"""
     email_id = args["email_id"]
     sender = args["sender"]
     subject = args["subject"]
@@ -70,7 +70,7 @@ async def email_tasks_add_task(args: Dict[str, Any]) -> Dict[str, Any]:
     text = args["text"]
     channel_id = args["channel_id"]
 
-    # 허용된 사용자 검증
+    # Verify authorized user
     from app.cc_slack_handlers import is_authorized_user
 
     if not is_authorized_user(user_name):
@@ -80,7 +80,7 @@ async def email_tasks_add_task(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"사용자 '{user_name}'는 허용된 사용자가 아닙니다. 할 일을 추가할 수 없습니다."
+                    "message": f"User '{user_name}' is not an authorized user. Cannot add task."
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -101,7 +101,7 @@ async def email_tasks_add_task(args: Dict[str, Any]) -> Dict[str, Any]:
         result = {
             "success": True,
             "task_id": task_id,
-            "message": f"할 일이 추가되었습니다 (ID: {task_id})"
+            "message": f"Task has been added (ID: {task_id})"
         }
 
         return {
@@ -123,14 +123,14 @@ async def email_tasks_add_task(args: Dict[str, Any]) -> Dict[str, Any]:
         }
 
 
-# MCP 서버 생성
+# Create MCP server
 tools_list = [
     email_tasks_add_task,
 ]
 
 
 def create_email_tasks_mcp_server():
-    """Email Tasks MCP 서버 생성"""
+    """Create Email Tasks MCP server"""
     return create_sdk_mcp_server(
         name="email_tasks",
         version="1.0.0",

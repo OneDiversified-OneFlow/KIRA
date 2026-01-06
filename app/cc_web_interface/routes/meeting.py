@@ -1,6 +1,6 @@
 """
 Meeting Routes
-회의 녹음 및 관련 기능 라우트
+Meeting recording and related functionality routes
 """
 
 import logging
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/meeting", tags=["meeting"])
 
 
 def require_auth(request: Request) -> dict:
-    """인증 확인"""
+    """Check authentication"""
     user = request.session.get("user")
     if not user:
         raise HTTPException(status_code=401, detail="Not authenticated")
@@ -30,16 +30,16 @@ async def upload_recording(
     file: UploadFile = File(...),
     user: dict = Depends(require_auth)
 ):
-    """회의 녹음 파일 업로드"""
+    """Upload meeting recording file"""
     try:
         settings = get_settings()
 
-        # 오늘 날짜 폴더 생성 (YYYYMMDD)
+        # Create today's date folder (YYYYMMDD)
         today = datetime.now().strftime("%Y%m%d")
         meetings_dir = Path(settings.FILESYSTEM_BASE_DIR) / "meetings" / today
         meetings_dir.mkdir(parents=True, exist_ok=True)
 
-        # 파일 저장
+        # Save file
         contents = await file.read()
         file_path = meetings_dir / file.filename
 
@@ -62,8 +62,8 @@ async def upload_recording(
 
 @router.get("/list")
 async def list_recordings(request: Request, user: dict = Depends(require_auth)):
-    """회의 녹음 목록 조회"""
-    # 데이터베이스나 파일 시스템에서 목록 조회
+    """List meeting recordings"""
+    # Query list from database or file system
     return {
         "recordings": [],
         "user": user.get("name")
@@ -76,8 +76,8 @@ async def get_transcription(
     request: Request,
     user: dict = Depends(require_auth)
 ):
-    """회의 녹음 전사 결과 조회"""
-    # 전사 결과 반환
+    """Get meeting recording transcription"""
+    # Return transcription result
     return {
         "recording_id": recording_id,
         "transcription": "...",

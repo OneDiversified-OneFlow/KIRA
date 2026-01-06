@@ -8,21 +8,21 @@ from app.config import constant
 
 
 class Settings(BaseSettings):
-    # 공통 환경
+    # Common environment
     APP_ENV: str = ""
 
-    # AI 모델 설정 (Electron 앱에서 선택 가능, Vertex AI 사용 시 자동 변환)
-    MODEL_FOR_SIMPLE: str = "sonnet"     # 판단용 (봇 호출 감지, 분류 등)
-    MODEL_FOR_MODERATE: str = "sonnet"   # 분석용 (메모리 관리, 요약 등)
-    MODEL_FOR_COMPLEX: str = "sonnet"    # 작업용 (핵심 작업 수행)
+    # AI model settings (selectable in Electron app, auto-converted when using Vertex AI)
+    MODEL_FOR_SIMPLE: str = "sonnet"     # For decision-making (bot call detection, classification, etc.)
+    MODEL_FOR_MODERATE: str = "sonnet"   # For analysis (memory management, summarization, etc.)
+    MODEL_FOR_COMPLEX: str = "sonnet"    # For tasks (core task execution)
 
-    # SLACK 관련
+    # Slack related
     SLACK_BOT_TOKEN: str = ""
     SLACK_APP_TOKEN: str = ""
     SLACK_SIGNING_SECRET: str = ""
     SLACK_TEAM_ID: str = ""
 
-    # 봇 정보
+    # Bot information
     BOT_NAME: str = ""
     BOT_EMAIL: str = ""
     BOT_ORGANIZATION: str = ""
@@ -89,7 +89,7 @@ class Settings(BaseSettings):
     CHROME_ENABLED: bool = False
     CHROME_ALWAYS_PROFILE_SETUP: bool = False
 
-    # 웹 서버 / 음성 수신 채널
+    # Web server / Voice input channel
     WEB_INTERFACE_ENABLED: bool = True
     WEB_INTERFACE_AUTH_PROVIDER: str = "microsoft"
     WEB_INTERFACE_URL: str = ""
@@ -99,24 +99,24 @@ class Settings(BaseSettings):
     WEB_MS365_CLIENT_SECRET: str = ""
     WEB_MS365_TENANT_ID: str = ""
 
-    # 능동 수신 채널 - Outlook
+    # Active input channel - Outlook
     OUTLOOK_CHECK_ENABLED: bool = False
     OUTLOOK_CHECK_INTERVAL: int = 5
 
-    # 능동 수신 채널 - Confluence
+    # Active input channel - Confluence
     CONFLUENCE_CHECK_ENABLED: bool = False
     CONFLUENCE_CHECK_INTERVAL: int = 60
     CONFLUENCE_CHECK_HOURS: int = 1
 
-    # 능동 수신 채널 - Jira
+    # Active input channel - Jira
     JIRA_CHECK_ENABLED: bool = False
     JIRA_CHECK_INTERVAL: int = 30
 
-    # 선제적 제안 기능
+    # Proactive suggestion feature
     DYNAMIC_SUGGESTER_ENABLED: bool = False
     DYNAMIC_SUGGESTER_INTERVAL: int = 15
 
-    # 디버그
+    # Debug
     DEBUG_SLACK_MESSAGES_ENABLED: bool = False
 
     def model_post_init(self, __context):
@@ -147,8 +147,8 @@ class Settings(BaseSettings):
                 "ANTHROPIC_VERTEX_REGION", "your-region"
             )
             os.environ["CLAUDE_CODE_USE_VERTEX"] = "1"
-            # Pydantic v2 BaseSettings는 frozen이므로 object.__setattr__ 사용
-            # 사용자 선택 모델을 Vertex AI 모델명으로 변환
+            # Pydantic v2 BaseSettings is frozen, so use object.__setattr__
+            # Convert user-selected model to Vertex AI model name
             vertex_model_map = {
                 "haiku": "claude-haiku-4-5@20251001",
                 "sonnet": "claude-sonnet-4-5@20250929",

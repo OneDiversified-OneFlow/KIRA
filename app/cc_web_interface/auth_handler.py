@@ -1,6 +1,6 @@
 """
 Authentication Handler
-웹 인터페이스 인증 방식 선택 및 처리
+Web interface authentication method selection and processing
 """
 
 import os
@@ -20,27 +20,27 @@ logger = logging.getLogger(__name__)
 
 
 class AuthProvider(str, Enum):
-    """지원하는 인증 제공자"""
+    """Supported authentication providers"""
     MICROSOFT = "microsoft"
     SLACK = "slack"
-    NONE = "none"  # 개발/테스트용
+    NONE = "none"  # For development/testing
 
 
 class AuthHandler:
-    """통합 인증 핸들러"""
+    """Unified authentication handler"""
 
     def __init__(self):
         self.provider = self._get_provider()
         logger.info(f"Web interface auth provider: {self.provider}")
 
-        # OAuth 클라이언트 초기화
+        # Initialize OAuth client
         if self.provider == AuthProvider.MICROSOFT:
             self.azure_oauth = AzureOAuth()
         elif self.provider == AuthProvider.SLACK:
             self.slack_oauth = SlackOAuth()
 
     def _get_provider(self) -> AuthProvider:
-        """설정된 인증 제공자 확인"""
+        """Get configured authentication provider"""
         settings = get_settings()
         provider = (settings.WEB_INTERFACE_AUTH_PROVIDER or "microsoft").lower()
 
@@ -53,7 +53,7 @@ class AuthHandler:
             return AuthProvider.MICROSOFT
 
     def get_redirect_uri(self, request: Request) -> str:
-        """OAuth 리디렉트 URI 생성"""
+        """Generate OAuth redirect URI"""
         settings = get_settings()
 
         if settings.WEB_INTERFACE_URL:
@@ -64,9 +64,9 @@ class AuthHandler:
         return f"{base_url}/auth/callback"
 
     async def handle_login(self, request: Request):
-        """로그인 시작"""
+        """Start login"""
         if self.provider == AuthProvider.NONE:
-            # 개발 모드 - 바로 세션 생성
+            # Development mode - create session immediately
             request.session['user'] = {
                 'email': 'dev@localhost',
                 'name': 'Developer',
@@ -86,12 +86,12 @@ class AuthHandler:
             return await self.azure_oauth.client.authorize_redirect(request, redirect_uri)
 
     async def handle_callback(self, request: Request):
-        """OAuth 콜백 처리"""
+        """Handle OAuth callback"""
         if self.provider == AuthProvider.NONE:
             return RedirectResponse(url="/", status_code=302)
 
         elif self.provider == AuthProvider.SLACK:
-            # Slack OAuth 콜백
+            # Slack OAuth callback
             code = request.query_params.get("code")
             if not code:
                 raise HTTPException(status_code=400, detail="No authorization code")
@@ -102,7 +102,7 @@ class AuthHandler:
             if not token_data:
                 raise HTTPException(status_code=400, detail="Failed to get access token")
 
-            # OIDC 사용자 정보 가져오기
+            # Get OIDC user info
             access_token = token_data.get("access_token")
             if not access_token:
                 raise HTTPException(status_code=400, detail="No access token in response")
@@ -112,7 +112,7 @@ class AuthHandler:
             if not user_info:
                 raise HTTPException(status_code=400, detail="Failed to get user info")
 
-            # OIDC userInfo 응답 형식: {"ok": true, "sub": "U...", "name": "...", "email": "..."}
+            # OIDC userInfo response format: {"ok": true, "sub": "U...", "name": "...", "email": "..."}
             user_name = user_info.get("name", "")
             user_email = user_info.get("email", "")
             user_id = user_info.get("sub", "")  # OIDC uses 'sub' for user ID
@@ -121,7 +121,7 @@ class AuthHandler:
                 logger.warning(f"Unauthorized Slack user: {user_name} ({user_email})")
                 raise HTTPException(status_code=403, detail=f"Not authorized: {user_name}")
 
-            # 세션에 저장
+            # Save to session
             request.session['user'] = {
                 'email': user_email,
                 'name': user_name,
@@ -133,19 +133,19 @@ class AuthHandler:
             return RedirectResponse(url="/", status_code=302)
 
         else:  # MICROSOFT
-            # Microsoft OAuth 콜백
+            # Microsoft OAuth callback
             token = await self.azure_oauth.client.authorize_access_token(request)
             user_info = await self.azure_oauth.get_user_info_from_token(token)
 
             if not user_info:
                 raise HTTPException(status_code=400, detail="Failed to get user info")
 
-            # 권한 확인
+            # Check authorization
             if not is_authorized_user(user_info.get('name', '')):
                 logger.warning(f"Unauthorized MS user: {user_info.get('name')} ({user_info.get('email')})")
                 raise HTTPException(status_code=403, detail=f"Not authorized: {user_info.get('name')}")
 
-            # 세션에 저장
+            # Save to session
             request.session['user'] = {
                 'email': user_info.get('email'),
                 'name': user_info.get('name'),
@@ -156,9 +156,9 @@ class AuthHandler:
             return RedirectResponse(url="/", status_code=302)
 
     def get_provider_name(self) -> str:
-        """현재 인증 제공자 이름"""
+        """Get current authentication provider name"""
         return self.provider.value
 
 
-# 싱글톤 인스턴스
+# Singleton instance
 auth_handler = AuthHandler()

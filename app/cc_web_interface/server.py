@@ -1,6 +1,6 @@
 """
 KIRA Web Interface Server
-음성 입력 및 웹 인터페이스 서버
+Voice input and web interface server
 """
 
 import logging
@@ -11,7 +11,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
-# 라우터 임포트
+# Import routers
 from app.cc_web_interface.routes import (
     auth_router,
     bot_auth_router,
@@ -26,21 +26,21 @@ from app.cc_utils.slack_helper import get_bot_profile_image
 
 logger = logging.getLogger(__name__)
 
-# FastAPI 앱 생성
+# Create FastAPI app
 web_app = FastAPI(title="KIRA Web Interface")
 
-# 세션 미들웨어 추가
+# Add session middleware
 web_app.add_middleware(
     SessionMiddleware,
-    secret_key="your-secret-key-change-this-in-production"  # TODO: 환경변수로 변경
+    secret_key="your-secret-key-change-this-in-production"  # TODO: Change to environment variable
 )
 
-# 정적 파일 서빙
+# Serve static files
 static_dir = Path(__file__).parent / "static"
 if static_dir.exists():
     web_app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-# 라우터 등록
+# Register routers
 web_app.include_router(auth_router)
 web_app.include_router(bot_auth_router)
 web_app.include_router(meeting_router)
@@ -50,16 +50,16 @@ web_app.include_router(api_router)
 
 @web_app.get("/")
 async def home(request: Request):
-    """메인 페이지 (음성 입력 UI)"""
-    # 로그인 체크
+    """Main page (voice input UI)"""
+    # Check login
     user = get_session_user(request)
 
     if not user:
-        # 로그인 필요하면 로그인 페이지로
+        # Redirect to login if authentication required
         if require_auth(request):
             return await auth_handler.handle_login(request)
         else:
-            # 개발 모드 - 가상 사용자 설정
+            # Development mode - set virtual user
             user = {
                 'email': 'dev@localhost',
                 'name': 'Developer',
@@ -67,38 +67,38 @@ async def home(request: Request):
             }
             request.session['user'] = user
 
-    # 인가된 사용자인지 재확인
+    # Re-verify if user is authorized
     if not is_authorized_user(user.get('name', '')):
         logger.warning(f"[AUTH] Unauthorized access attempt: {user.get('name')} ({user.get('email')})")
         request.session.clear()
         return HTMLResponse(
-            content=f"<h1>접근 권한이 없습니다</h1><p>사용자: {user.get('name')} ({user.get('email')})</p><p>관리자에게 문의하세요.</p>",
+            content=f"<h1>Access Denied</h1><p>User: {user.get('name')} ({user.get('email')})</p><p>Please contact the administrator.</p>",
             status_code=403
         )
 
-    # 로그인된 사용자: 음성 UI 표시
+    # Logged in user: display voice UI
     html_path = Path(__file__).parent / "static" / "index.html"
     if html_path.exists():
         with open(html_path, 'r', encoding='utf-8') as f:
             html_content = f.read()
 
-        # 템플릿 변수 치환
+        # Replace template variables
         from app.config.settings import get_settings
         settings = get_settings()
         bot_profile_image = get_bot_profile_image()
 
         html_content = html_content.replace('{{BOT_NAME}}', settings.BOT_NAME)
         html_content = html_content.replace('{{BOT_ORGANIZATION}}', settings.BOT_ORGANIZATION)
-        html_content = html_content.replace('{{USER_NAME}}', user.get('name', '사용자'))
+        html_content = html_content.replace('{{USER_NAME}}', user.get('name', 'User'))
         html_content = html_content.replace('{{BOT_PROFILE_IMAGE}}', bot_profile_image)
         html_content = html_content.replace('{{CLOVA_ENABLED}}', str(settings.CLOVA_ENABLED).lower())
 
         return HTMLResponse(content=html_content)
     else:
-        return HTMLResponse(content="<h1>음성 인터페이스</h1><p>index.html 파일이 없습니다.</p>")
+        return HTMLResponse(content="<h1>Voice Interface</h1><p>index.html file not found.</p>")
 
 
 @web_app.get("/health")
 async def health_check():
-    """헬스 체크"""
+    """Health check"""
     return {"status": "healthy", "service": "KIRA Web Interface"}

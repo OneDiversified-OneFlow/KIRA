@@ -1,6 +1,6 @@
 """
 Meeting Tools for Claude Code SDK
-회의 음성 파일 관리 및 텍스트 변환 도구
+Tools for managing meeting audio files and transcription
 """
 
 import json
@@ -15,26 +15,26 @@ from app.config.settings import get_settings
 
 @tool(
     "list_meeting_files",
-    "특정 날짜의 회의/미팅 음성 파일 목록을 조회합니다. 회의록 작성을 위해 사용합니다.",
+    "Lists meeting/audio files for a specific date. Used for creating meeting minutes.",
     {
         "type": "object",
         "properties": {
             "date": {
                 "type": "string",
-                "description": "조회할 날짜 (YYYYMMDD 형식, 예: 20250128)"
+                "description": "Date to query (YYYYMMDD format, e.g., 20250128)"
             }
         },
         "required": ["date"]
     }
 )
 async def list_meeting_files(args: Dict[str, Any]) -> Dict[str, Any]:
-    """특정 날짜의 회의 파일 목록 조회"""
+    """List meeting files for a specific date"""
     date = args["date"]
 
     try:
         settings = get_settings()
 
-        # 날짜 폴더 경로
+        # Date folder path
         meetings_dir = Path(settings.FILESYSTEM_BASE_DIR) / "meetings" / date
 
         if not meetings_dir.exists():
@@ -45,12 +45,12 @@ async def list_meeting_files(args: Dict[str, Any]) -> Dict[str, Any]:
                         "success": True,
                         "date": date,
                         "files": [],
-                        "message": f"{date} 날짜의 회의 파일이 없습니다."
+                        "message": f"No meeting files for date {date}."
                     }, ensure_ascii=False, indent=2)
                 }]
             }
 
-        # 모든 파일 리스트 가져오기
+        # Get all file list
         files = []
         for file_path in sorted(meetings_dir.iterdir()):
             if file_path.is_file():
@@ -70,7 +70,7 @@ async def list_meeting_files(args: Dict[str, Any]) -> Dict[str, Any]:
                     "folder_path": str(meetings_dir),
                     "total_files": len(files),
                     "files": files,
-                    "message": f"{date} 날짜의 회의 파일 {len(files)}개 조회 완료"
+                    "message": f"Retrieved {len(files)} meeting files for date {date}"
                 }, ensure_ascii=False, indent=2)
             }]
         }
@@ -82,7 +82,7 @@ async def list_meeting_files(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"파일 목록 조회 중 오류 발생: {str(e)}"
+                    "message": f"Error occurred while retrieving file list: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -91,31 +91,31 @@ async def list_meeting_files(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "transcribe_meeting",
-    "회의/미팅 음성 파일에서 화자 구분이 포함된 텍스트를 추출합니다. 회의록 작성을 위해 사용합니다.",
+    "Extracts text with speaker diarization from meeting/audio files. Used for creating meeting minutes.",
     {
         "type": "object",
         "properties": {
             "audio_file_path": {
                 "type": "string",
-                "description": "변환할 음성 파일의 경로 (절대 경로 또는 상대 경로, 예: meetings/20250128/meeting_20250128_120000.webm)"
+                "description": "Path to audio file to transcribe (absolute or relative path, e.g., meetings/20250128/meeting_20250128_120000.webm)"
             }
         },
         "required": ["audio_file_path"]
     }
 )
 async def transcribe_meeting(args: Dict[str, Any]) -> Dict[str, Any]:
-    """회의 음성 파일을 텍스트로 변환 (화자 구분 포함)"""
+    """Transcribe meeting audio file to text (with speaker diarization)"""
     audio_file_path = args["audio_file_path"]
 
     try:
         settings = get_settings()
 
-        # 파일 경로 처리 (상대 경로면 FILESYSTEM_BASE_DIR 기준으로 변환)
+        # Process file path (convert relative path to FILESYSTEM_BASE_DIR based)
         file_path = Path(audio_file_path)
         if not file_path.is_absolute():
             file_path = Path(settings.FILESYSTEM_BASE_DIR) / audio_file_path
 
-        # 파일 존재 확인
+        # Check if file exists
         if not file_path.exists():
             return {
                 "content": [{
@@ -123,13 +123,13 @@ async def transcribe_meeting(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": f"파일을 찾을 수 없습니다: {audio_file_path}"
+                        "message": f"File not found: {audio_file_path}"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
             }
 
-        # Clova로 음성 변환
+        # Transcribe audio with Clova
         transcript = await convert_speech_to_text_with_speakers(str(file_path))
 
         return {
@@ -139,7 +139,7 @@ async def transcribe_meeting(args: Dict[str, Any]) -> Dict[str, Any]:
                     "success": True,
                     "file_path": str(file_path),
                     "transcript": transcript,
-                    "message": "회의 음성 변환 완료"
+                    "message": "Meeting audio transcription completed"
                 }, ensure_ascii=False, indent=2)
             }]
         }
@@ -151,14 +151,14 @@ async def transcribe_meeting(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"음성 변환 중 오류 발생: {str(e)}"
+                    "message": f"Error occurred during audio transcription: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
         }
 
 
-# MCP Server 생성
+# Create MCP Server
 meetings_tools = [
     list_meeting_files,
     transcribe_meeting,
@@ -166,7 +166,7 @@ meetings_tools = [
 
 
 def create_meetings_mcp_server():
-    """Claude Code SDK용 회의록 작성 MCP 서버"""
+    """Meeting transcription MCP server for Claude Code SDK"""
     return create_sdk_mcp_server(
         name="meeting_transcription",
         version="1.0.0",

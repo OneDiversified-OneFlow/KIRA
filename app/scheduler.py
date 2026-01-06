@@ -4,9 +4,9 @@ import uuid
 import logging
 from datetime import datetime
 
-# Scheduler 전용 logger (별도 포맷)
+# Scheduler dedicated logger (separate format)
 scheduler_logger = logging.getLogger("SCHEDULER")
-scheduler_logger.propagate = False  # 부모 logger로 전파 안 함
+scheduler_logger.propagate = False  # Don't propagate to parent logger
 _handler = logging.StreamHandler()
 _handler.setFormatter(logging.Formatter(
     "%(asctime)s - %(levelname)s - [%(name)s] %(message)s",
@@ -16,22 +16,22 @@ scheduler_logger.addHandler(_handler)
 scheduler_logger.setLevel(logging.INFO)
 from typing import List, Dict, Any
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.cron import CronTrigger  # CronTrigger 임포트 추가
+from apscheduler.triggers.cron import CronTrigger
 from apscheduler.executors.asyncio import AsyncIOExecutor
 
 from app.config.settings import get_settings
 from app.queueing_extended import enqueue_message
 
-# 스케줄러 인스턴스 및 설정
+# Scheduler instance and configuration
 # =================================================================
-# AsyncIOExecutor로 동시 실행 가능하도록 설정
+# Enable concurrent execution with AsyncIOExecutor
 executors = {
     'default': AsyncIOExecutor()
 }
 job_defaults = {
-    'coalesce': False,  # 누적된 작업을 합치지 않음
-    'max_instances': 3,  # 동일 job이 동시에 3개까지 실행 가능
-    'misfire_grace_time': 30  # 30초 이내 지연은 허용
+    'coalesce': False,  # Don't merge accumulated jobs
+    'max_instances': 3,  # Same job can run up to 3 instances concurrently
+    'misfire_grace_time': 30  # Allow up to 30 seconds delay
 }
 scheduler = AsyncIOScheduler(executors=executors, job_defaults=job_defaults)
 settings = get_settings()
@@ -39,7 +39,7 @@ SCHEDULE_DIR = os.path.join(settings.FILESYSTEM_BASE_DIR, "schedule_data")
 SCHEDULE_FILE = os.path.join(SCHEDULE_DIR, "schedules.json")
 
 
-# 내부 파일 I/O 및 스케줄 관리 로직
+# Internal file I/O and schedule management logic
 # =================================================================
 def _ensure_dir_and_file():
     os.makedirs(SCHEDULE_DIR, exist_ok=True)
@@ -65,12 +65,12 @@ def write_schedules_to_file(schedules: List[Dict[str, Any]]):
 
 async def scheduled_message_wrapper(message: dict, schedule_id: str, schedule_name: str):
     """
-    스케줄된 메시지를 실행하는 래퍼 함수 (로깅 및 오류 처리)
+    Wrapper function that executes scheduled messages (with logging and error handling)
 
     Args:
-        message: 전송할 메시지
-        schedule_id: 스케줄 ID
-        schedule_name: 스케줄 이름
+        message: Message to send
+        schedule_id: Schedule ID
+        schedule_name: Schedule name
     """
     try:
         scheduler_logger.info(f"🔔 Executing: [{schedule_name}] (ID: {schedule_id})")
@@ -86,16 +86,16 @@ async def scheduled_message_wrapper(message: dict, schedule_id: str, schedule_na
 
 
 async def reload_schedules_from_file():
-    """파일에서 스케줄을 읽어 스케줄러에 다시 로드합니다."""
+    """Read schedules from file and reload them into the scheduler."""
     try:
-        # scheduled_message_wrapper로 등록된 job만 삭제 (체커/suggester는 유지)
+        # Only delete jobs registered with scheduled_message_wrapper (keep checkers/suggester)
         jobs = scheduler.get_jobs()
         for job in jobs:
             if job.func == scheduled_message_wrapper:
                 scheduler.remove_job(job.id)
                 scheduler_logger.debug(f"Removed existing job: {job.name} (ID: {job.id})")
     except Exception as e:
-        scheduler_logger.warning(f"기존 스케줄 삭제 중 오류 발생 (첫 실행 시 정상): {e}")
+        scheduler_logger.warning(f"Error while deleting existing schedules (normal on first run): {e}")
 
     schedules = read_schedules_from_file()
     count = 0
@@ -118,18 +118,18 @@ async def reload_schedules_from_file():
             job_args = {
                 "id": schedule_id,
                 "name": schedule_name,
-                "args": [message, schedule_id, schedule_name],  # 래퍼에 ID와 이름 전달
+                "args": [message, schedule_id, schedule_name],  # Pass ID and name to wrapper
             }
 
             if schedule_type == "cron":
                 scheduler.add_job(
-                    scheduled_message_wrapper,  # 래퍼 함수 사용
+                    scheduled_message_wrapper,  # Use wrapper function
                     trigger=CronTrigger.from_crontab(schedule_value),
                     **job_args,
                 )
                 scheduler_logger.info(f"📅 Registered cron: [{schedule_name}] (ID: {schedule_id}), pattern: {schedule_value}")
             elif schedule_type == "date":
-                # 과거 시간인 경우 스키핑
+                # Skip if the time is in the past
                 try:
                     run_date = datetime.fromisoformat(schedule_value.replace('Z', '+00:00'))
                     if run_date <= datetime.now(run_date.tzinfo):
@@ -140,7 +140,7 @@ async def reload_schedules_from_file():
                     continue
 
                 scheduler.add_job(
-                    scheduled_message_wrapper,  # 래퍼 함수 사용
+                    scheduled_message_wrapper,  # Use wrapper function
                     trigger="date",
                     run_date=schedule_value,
                     **job_args
@@ -150,4 +150,4 @@ async def reload_schedules_from_file():
             count += 1
         except Exception as e:
             scheduler_logger.error(f"❌ Failed to register: [{schedule.get('name')}] (ID: {schedule.get('id')}), error: {e}")
-    scheduler_logger.info(f"✅ 총 {count}개 스케줄 리로드 완료")
+    scheduler_logger.info(f"Total {count} schedules reloaded successfully")

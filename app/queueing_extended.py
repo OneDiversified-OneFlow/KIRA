@@ -3,26 +3,26 @@ import logging
 from datetime import datetime
 from typing import Dict, Optional
 
-# 채널별 메시지 큐
+# Per-channel message queues
 message_queues: Dict[str, asyncio.Queue] = {}
 
-# 글로벌 orchestrator 큐 (무거운 작업 전용)
+# Global orchestrator queue (for heavy tasks)
 orchestrator_queue = asyncio.Queue(maxsize=100)
 
-# 메모리 저장 전용 큐 (순차 처리를 위한 단일 워커)
+# Memory save dedicated queue (single worker for sequential processing)
 memory_queue = asyncio.Queue(maxsize=100)
 
-# Orchestrator 워커 상태 관리
-_active_orchestrator_workers = 0  # 현재 작업 중인 워커 수
-_status_update_lock = asyncio.Lock()  # 상태 업데이트 중복 방지
+# Orchestrator worker status management
+_active_orchestrator_workers = 0  # Currently active worker count
+_status_update_lock = asyncio.Lock()  # Prevent duplicate status updates
 
-# Debounce 관리를 위한 전역 변수들
+# Global variables for debounce management
 _debounce_timers: Dict[str, asyncio.Task] = {}
 _accumulated_messages: Dict[str, list] = {}
 
 
 def get_or_create_channel_queue(channel_id: str) -> asyncio.Queue:
-    """채널별 큐를 가져오거나 생성"""
+    """Get or create a per-channel queue"""
     if channel_id not in message_queues:
         message_queues[channel_id] = asyncio.Queue(maxsize=100)
         logging.info(f"[QUEUE] Created new queue for channel: {channel_id}")
@@ -30,7 +30,7 @@ def get_or_create_channel_queue(channel_id: str) -> asyncio.Queue:
 
 
 async def enqueue_message(message):
-    """채널별 메시지 큐에 추가"""
+    """Add to per-channel message queue"""
     channel_id = message.get("channel")
     queue = get_or_create_channel_queue(channel_id)
     await queue.put({"message": message})
@@ -38,35 +38,35 @@ async def enqueue_message(message):
 
 
 async def enqueue_orchestrator_job(orchestrator_job: dict):
-    """글로벌 orchestrator 큐에 작업 추가"""
+    """Add job to global orchestrator queue"""
     await orchestrator_queue.put(orchestrator_job)
     logging.info(f"[ORCHESTRATOR_QUEUE] Job enqueued, queue size: {orchestrator_queue.qsize()}")
 
 
 async def enqueue_memory_job(memory_job: dict):
-    """메모리 저장 큐에 작업 추가 (순차 처리)"""
+    """Add job to memory save queue (sequential processing)"""
     await memory_queue.put(memory_job)
     logging.info(f"[MEMORY_QUEUE] Job enqueued, queue size: {memory_queue.qsize()}")
 
 
 async def debounced_enqueue_message(message, delay_seconds: float = 2.0):
-    """Debounced version of enqueue_message - 지정된 시간간 추가 메시지가 없으면 누적된 메시지들을 합쳐서 처리
+    """Debounced version of enqueue_message - merges accumulated messages if no additional messages within specified time
 
     Args:
-        message: Slack 메시지 객체
-        delay_seconds: debounce 지연 시간 (초), 0이면 즉시 처리
+        message: Slack message object
+        delay_seconds: debounce delay time (seconds), 0 for immediate processing
     """
     user_id = message.get("user")
     channel_id = message.get("channel")
     debounce_key = f"{channel_id}:{user_id}"
 
-    # 0초면 즉시 처리
+    # Process immediately if 0 seconds
     if delay_seconds == 0:
         logging.info(f"[DEBOUNCE] Immediate processing for {user_id} in {channel_id} (delay=0)")
         await enqueue_message(message)
         return
 
-    # 메시지 누적
+    # Accumulate messages
     if debounce_key not in _accumulated_messages:
         _accumulated_messages[debounce_key] = []
         logging.info(f"[DEBOUNCE] First message from {user_id} in {channel_id}, starting {delay_seconds}s timer")
@@ -78,25 +78,25 @@ async def debounced_enqueue_message(message, delay_seconds: float = 2.0):
         "timestamp": datetime.now()
     })
 
-    # 기존 타이머가 있다면 취소
+    # Cancel existing timer if present
     if debounce_key in _debounce_timers:
         _debounce_timers[debounce_key].cancel()
         logging.info(f"[DEBOUNCE] Cancelled previous timer for {debounce_key}")
 
-    # 새 타이머 시작
+    # Start new timer
     async def delayed_process():
         try:
             await asyncio.sleep(delay_seconds)
 
-            # 타이머 만료 후 누적된 메시지들을 합쳐서 처리
+            # After timer expires, merge accumulated messages and process
             if debounce_key in _accumulated_messages:
                 accumulated = _accumulated_messages[debounce_key]
                 message_count = len(accumulated)
                 logging.info(f"[DEBOUNCE] Timer expired, merging {message_count} messages from {user_id} in {channel_id}")
 
-                # 메시지들의 텍스트를 합치기
+                # Merge text from messages
                 merged_text_parts = []
-                base_message = accumulated[0]["message"].copy()  # 첫 번째 메시지를 베이스로 사용
+                base_message = accumulated[0]["message"].copy()  # Use first message as base
 
                 for msg_data in accumulated:
                     msg = msg_data["message"]
@@ -104,17 +104,17 @@ async def debounced_enqueue_message(message, delay_seconds: float = 2.0):
                     if text:
                         merged_text_parts.append(text)
 
-                # 합친 텍스트로 메시지 생성
+                # Create message with merged text
                 if merged_text_parts:
                     base_message["text"] = "\n".join(merged_text_parts)
                     logging.info(f"[DEBOUNCE] Merged text: {base_message['text'][:100]}...")
 
-                    # 실제 메시지 처리
+                    # Process actual message
                     await enqueue_message(base_message)
                 else:
                     logging.warning(f"[DEBOUNCE] No text content found in {message_count} messages")
 
-                # 정리
+                # Cleanup
                 del _accumulated_messages[debounce_key]
                 if debounce_key in _debounce_timers:
                     del _debounce_timers[debounce_key]
@@ -124,21 +124,21 @@ async def debounced_enqueue_message(message, delay_seconds: float = 2.0):
             raise
         except Exception as e:
             logging.error(f"[DEBOUNCE] Error in delayed processing for {debounce_key}: {e}")
-            # 에러 발생시에도 정리
+            # Cleanup on error as well
             if debounce_key in _accumulated_messages:
                 del _accumulated_messages[debounce_key]
             if debounce_key in _debounce_timers:
                 del _debounce_timers[debounce_key]
 
-    # 새 타이머 등록
+    # Register new timer
     _debounce_timers[debounce_key] = asyncio.create_task(delayed_process())
 
 
 def start_channel_workers(app, process_func, workers_per_channel=5):
-    """채널별 worker 시작 - 각 채널의 메시지를 병렬 처리"""
+    """Start per-channel workers - process messages in parallel for each channel"""
 
     async def channel_worker(channel_id: str, queue: asyncio.Queue, worker_id: int):
-        """특정 채널의 메시지를 병렬 처리하는 worker"""
+        """Worker that processes messages in parallel for a specific channel"""
         client = app.client
         logging.info(f"[CHANNEL_WORKER-{worker_id}] Started worker for channel: {channel_id}")
 
@@ -156,15 +156,15 @@ def start_channel_workers(app, process_func, workers_per_channel=5):
                 queue.task_done()
 
     async def monitor_and_spawn_workers():
-        """새로운 채널 큐가 생성되면 자동으로 worker 생성"""
+        """Automatically spawn workers when new channel queues are created"""
         monitored_channels = set()
 
         while True:
-            await asyncio.sleep(1)  # 1초마다 체크
+            await asyncio.sleep(1)  # Check every second
 
             for channel_id, queue in list(message_queues.items()):
                 if channel_id not in monitored_channels:
-                    # 새 채널 발견, 채널당 여러 worker 생성
+                    # New channel found, spawn multiple workers per channel
                     for worker_id in range(workers_per_channel):
                         asyncio.create_task(channel_worker(channel_id, queue, worker_id))
                     monitored_channels.add(channel_id)
@@ -175,21 +175,21 @@ def start_channel_workers(app, process_func, workers_per_channel=5):
 
 
 def start_orchestrator_worker(app, orchestrator_func, num_workers=2):
-    """글로벌 orchestrator worker 시작 - 모든 orchestrator 작업을 병렬 처리"""
+    """Start global orchestrator worker - process all orchestrator jobs in parallel"""
 
     async def orchestrator_worker(worker_id: int):
         global _active_orchestrator_workers
         client = app.client
         logging.info(f"[ORCHESTRATOR_WORKER-{worker_id}] Started")
 
-        # 봇 상태 업데이트 함수
+        # Bot status update function
         async def update_bot_status():
             global _active_orchestrator_workers
 
-            # Lock을 사용해서 동시 업데이트 방지
+            # Use lock to prevent concurrent updates
             async with _status_update_lock:
                 active_workers = _active_orchestrator_workers
-                is_busy = active_workers >= num_workers  # 모든 워커가 작업 중이면 busy
+                is_busy = active_workers >= num_workers  # Busy if all workers are active
 
                 logging.info(f"[STATUS] Updating bot status (active_workers: {active_workers}/{num_workers}, is_busy: {is_busy})")
                 try:
@@ -222,7 +222,7 @@ def start_orchestrator_worker(app, orchestrator_func, num_workers=2):
             logging.info(f"[ORCHESTRATOR_WORKER-{worker_id}] Job received from queue")
 
             try:
-                # 작업 시작 - active worker 증가
+                # Job started - increment active worker count
                 _active_orchestrator_workers += 1
                 logging.info(f"[ORCHESTRATOR_WORKER-{worker_id}] Started job (active: {_active_orchestrator_workers}/{num_workers})")
                 await update_bot_status()
@@ -232,7 +232,7 @@ def start_orchestrator_worker(app, orchestrator_func, num_workers=2):
             except Exception as e:
                 logging.error(f"[ORCHESTRATOR_WORKER-{worker_id}] Error: {e}")
             finally:
-                # 작업 완료 - active worker 감소
+                # Job completed - decrement active worker count
                 _active_orchestrator_workers -= 1
                 orchestrator_queue.task_done()
                 logging.info(f"[ORCHESTRATOR_WORKER-{worker_id}] Finished job (active: {_active_orchestrator_workers}/{num_workers})")
@@ -245,10 +245,10 @@ def start_orchestrator_worker(app, orchestrator_func, num_workers=2):
 
 
 def start_memory_worker(memory_func):
-    """메모리 저장 전용 워커 시작 (단일 워커로 순차 처리)
+    """Start memory save dedicated worker (single worker for sequential processing)
 
     Args:
-        memory_func: 메모리 저장 함수 (job dict를 받아 처리)
+        memory_func: Memory save function (receives and processes job dict)
     """
     async def memory_worker():
         logging.info(f"[MEMORY_WORKER] Started")

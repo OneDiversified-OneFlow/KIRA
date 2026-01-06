@@ -1,6 +1,6 @@
 """
 Slack OpenID Connect (OIDC) Authentication for Web Interface
-웹 인터페이스 접근을 위한 Slack 로그인 (OpenID Connect)
+Slack login for web interface access (OpenID Connect)
 """
 
 import os
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class SlackOAuth:
-    """Slack OpenID Connect 인증 핸들러"""
+    """Slack OpenID Connect authentication handler"""
 
     def __init__(self):
         settings = get_settings()
@@ -29,7 +29,7 @@ class SlackOAuth:
         self.user_info_url = "https://slack.com/api/openid.connect.userInfo"
 
     def get_authorize_url(self, redirect_uri: str, state: Optional[str] = None) -> str:
-        """Slack OIDC 인증 URL 생성"""
+        """Generate Slack OIDC authorization URL"""
         params = {
             "client_id": self.client_id,
             "scope": "openid email profile",  # OpenID Connect scopes
@@ -51,7 +51,7 @@ class SlackOAuth:
         return url
 
     async def get_access_token(self, code: str, redirect_uri: str) -> Optional[Dict[str, Any]]:
-        """Authorization code를 access token으로 교환 (OIDC)"""
+        """Exchange authorization code for access token (OIDC)"""
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 self.token_url,
@@ -78,7 +78,7 @@ class SlackOAuth:
                 return None
 
     async def get_user_info(self, access_token: str) -> Optional[Dict[str, Any]]:
-        """Slack 사용자 정보 가져오기 (OIDC userInfo)"""
+        """Get Slack user info (OIDC userInfo)"""
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 self.user_info_url,
@@ -100,5 +100,5 @@ class SlackOAuth:
                 return None
 
 
-# 싱글톤 인스턴스
+# Singleton instance
 slack_oauth = SlackOAuth()

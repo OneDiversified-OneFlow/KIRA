@@ -1,6 +1,6 @@
 """
-STT (Speech-to-Text) Provider 추상화
-Web Speech API와 Deepgram을 쉽게 교체 가능하도록 설계
+STT (Speech-to-Text) Provider Abstraction
+Designed for easy switching between Web Speech API and Deepgram
 """
 
 from abc import ABC, abstractmethod
@@ -8,37 +8,37 @@ from typing import Optional, Dict, Any
 
 
 class STTProvider(ABC):
-    """STT Provider 추상 클래스"""
+    """STT Provider abstract class"""
 
     @abstractmethod
     def get_provider_type(self) -> str:
-        """Provider 타입 반환 (webspeech / deepgram)"""
+        """Return provider type (webspeech / deepgram)"""
         pass
 
     @abstractmethod
     def get_client_config(self) -> Optional[Dict[str, Any]]:
-        """클라이언트에서 사용할 설정 반환"""
+        """Return configuration for client use"""
         pass
 
 
 class WebSpeechProvider(STTProvider):
-    """Web Speech API Provider (브라우저 내장)"""
+    """Web Speech API Provider (browser built-in)"""
 
     def get_provider_type(self) -> str:
         return "webspeech"
 
     def get_client_config(self) -> Optional[Dict[str, Any]]:
-        """Web Speech는 클라이언트에서 모두 처리하므로 설정 불필요"""
+        """Web Speech is handled entirely on client side, minimal config needed"""
         return {
             "type": "webspeech",
-            "lang": "ko-KR",  # 한국어
-            "continuous": False,  # 연속 인식 여부
-            "interimResults": True  # 중간 결과 표시
+            "lang": "ko-KR",  # Korean
+            "continuous": False,  # Continuous recognition
+            "interimResults": True  # Show interim results
         }
 
 
 class DeepgramProvider(STTProvider):
-    """Deepgram API Provider (향후 구현)"""
+    """Deepgram API Provider (for future implementation)"""
 
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -47,24 +47,24 @@ class DeepgramProvider(STTProvider):
         return "deepgram"
 
     def get_client_config(self) -> Optional[Dict[str, Any]]:
-        """Deepgram 설정 반환"""
+        """Return Deepgram configuration"""
         return {
             "type": "deepgram",
             "api_key": self.api_key,
             "language": "ko",
-            "model": "nova-2",  # 최신 모델
-            "smart_format": True  # 문장 부호 자동 추가
+            "model": "nova-2",  # Latest model
+            "smart_format": True  # Auto-add punctuation
         }
 
 
-# 현재 사용할 Provider 선택
+# Select current provider
 def get_stt_provider() -> STTProvider:
-    """현재 사용할 STT Provider 반환"""
-    # TODO: 환경변수나 설정으로 변경 가능하도록
-    # 현재는 Web Speech API 사용
+    """Return current STT Provider"""
+    # TODO: Make configurable via environment variable or settings
+    # Currently using Web Speech API
     return WebSpeechProvider()
 
-    # Deepgram으로 변경하려면:
+    # To switch to Deepgram:
     # from app.config.settings import get_settings
     # settings = get_settings()
     # return DeepgramProvider(api_key=settings.DEEPGRAM_API_KEY)

@@ -43,7 +43,7 @@ async def main():
 
         profile_dir = Path(settings.FILESYSTEM_BASE_DIR) / "chrome_profile"
 
-        # 프로필이 없거나, CHROME_ALWAYS_PROFILE_SETUP=True면 브라우저 열기
+        # Open browser if profile doesn't exist or CHROME_ALWAYS_PROFILE_SETUP=True
         should_open_browser = (
             not profile_dir.exists()
             or not any(profile_dir.iterdir())
@@ -63,12 +63,12 @@ async def main():
                 from playwright.async_api import async_playwright
 
                 async with async_playwright() as p:
-                    # Chrome 브라우저 실행 (persistent context 사용)
+                    # Launch Chrome browser (using persistent context)
                     context = await p.chromium.launch_persistent_context(
                         user_data_dir=str(profile_dir),
                         channel="chrome",
                         headless=False,
-                        # 봇 탐지 우회 설정
+                        # Bot detection bypass settings
                         args=[
                             "--disable-blink-features=AutomationControlled",
                             "--disable-dev-shm-usage",
@@ -79,7 +79,7 @@ async def main():
                     )
                     page = await context.new_page()
 
-                    # Google 열기
+                    # Open Google
                     await page.goto("https://www.google.com")
 
                     print("\n" + "=" * 70)
@@ -89,10 +89,10 @@ async def main():
                     print("👉 When done, press ENTER to continue...")
                     print("=" * 70 + "\n")
 
-                    # 사용자 입력 대기 (별도 스레드에서)
+                    # Wait for user input (in separate thread)
                     await asyncio.to_thread(lambda: input("Press ENTER to continue: "))
 
-                    # 브라우저 닫기
+                    # Close browser
                     await context.close()
 
                 logging.info("[CHROME_SETUP] ✅ Browser closed, login saved!")
@@ -152,7 +152,7 @@ async def main():
 
     # 7-2. Wrap the orchestrator process
     async def orchestrator_wrapper(job, client):
-        # 메모리 가져오기 (이미 검색되었으면 재사용, 아니면 새로 검색)
+        # Get memory (reuse if already retrieved, otherwise retrieve new)
         retrieved_memory = job.get("retrieved_memory")
         if not retrieved_memory:
             from app.cc_agents.memory_retriever import call_memory_retriever
@@ -171,7 +171,7 @@ async def main():
                 f"[ORCHESTRATOR_WRAPPER] Using pre-retrieved memory: {retrieved_memory[:100] if retrieved_memory else 'None'}..."
             )
 
-        # Operator 실행
+        # Run Operator
         from app.cc_agents.operator.agent import call_operator_agent
 
         response = await call_operator_agent(
@@ -186,7 +186,7 @@ async def main():
 
     # 7-3. Wrap the memory process
     async def memory_worker_wrapper(job):
-        """메모리 저장 작업을 처리하는 워커"""
+        """Worker that processes memory save tasks"""
         from app.cc_agents.memory_manager import call_memory_manager
 
         memory_query = job.get("memory_query")
@@ -213,11 +213,11 @@ async def main():
     if settings.OUTLOOK_CHECK_ENABLED and settings.MS365_ENABLED:
         from app.cc_checkers.ms365.outlook_checker import check_email_updates
 
-        # 스케줄러에 등록
+        # Register with scheduler
         scheduler.add_job(
             check_email_updates,
             trigger="interval",
-            seconds=settings.OUTLOOK_CHECK_INTERVAL * 60,  # 분을 초로 변환
+            seconds=settings.OUTLOOK_CHECK_INTERVAL * 60,  # Convert minutes to seconds
             id="outlook_checker",
             name="MS365 Outlook Checker",
         )
@@ -265,7 +265,7 @@ async def main():
 
         logging.info("[DYNAMIC_SUGGESTER] Initializing dynamic suggester...")
 
-        # 스케줄러에 등록
+        # Register with scheduler
         scheduler.add_job(
             call_dynamic_suggester,
             trigger="interval",
@@ -279,7 +279,7 @@ async def main():
 
     scheduler.start()
 
-    # 9. Start FastAPI Web Server (음성 인터페이스)
+    # 9. Start FastAPI Web Server (voice interface)
     web_server = None
     web_server_task = None
 
@@ -289,12 +289,12 @@ async def main():
         from pathlib import Path
         from app.cc_web_interface.server import web_app
 
-        # SSL 인증서 경로
+        # SSL certificate path
         cert_dir = Path(__file__).parent / "config" / "certs"
         ssl_keyfile = str(cert_dir / "key.pem")
         ssl_certfile = str(cert_dir / "cert.pem")
 
-        # FastAPI를 별도 태스크로 실행 (HTTPS)
+        # Run FastAPI in separate task (HTTPS)
         config = uvicorn.Config(
             web_app,
             host="0.0.0.0",
@@ -310,13 +310,13 @@ async def main():
     else:
         logging.info("[WEB_SERVER] Web interface disabled")
 
-    # 9-1. X 인증 체크 및 처리
+    # 9-1. X authentication check and handling
     if settings.X_ENABLED:
         from app.cc_utils.x_helper import load_token
         from app.cc_tools.x import initialize_x_client
         import webbrowser
 
-        # OAuth 1.0a 클라이언트 초기화 (트윗 작성, 미디어 업로드, 타임라인용)
+        # Initialize OAuth 1.0a client (for tweet posting, media upload, timeline)
         if all(
             [
                 settings.X_API_KEY,
@@ -338,7 +338,7 @@ async def main():
         else:
             logging.warning("[X_CLIENT] OAuth 1.0a credentials not configured")
 
-        # OAuth 2.0 토큰 체크 (트윗 조회, 검색용)
+        # OAuth 2.0 token check (for tweet viewing, search)
         token = load_token()
         if not token:
             logging.warning("[X_OAUTH] No OAuth 2.0 token found")
@@ -350,13 +350,13 @@ async def main():
             print("\nOpening browser for authentication...")
             print("=" * 70 + "\n")
 
-            # 웹 서버 시작 대기 (1초)
+            # Wait for web server to start (1 second)
             await asyncio.sleep(1)
 
-            # 브라우저 열기
+            # Open browser
             webbrowser.open("https://localhost:8000/bot/auth/x/start")
 
-            # 토큰 생성 대기 (최대 3분)
+            # Wait for token generation (max 3 minutes)
             timeout = 180
             start_time = asyncio.get_event_loop().time()
 
@@ -386,7 +386,7 @@ async def main():
     except KeyboardInterrupt:
         logging.info("\n[SHUTDOWN] Graceful shutdown initiated...")
 
-        # 1. Web server 종료
+        # 1. Shutdown web server
         if web_server and web_server_task:
             logging.info("[SHUTDOWN] Stopping web server...")
             web_server.should_exit = True
@@ -396,11 +396,11 @@ async def main():
             except asyncio.CancelledError:
                 pass
 
-        # 2. Scheduler 종료
+        # 2. Shutdown scheduler
         logging.info("[SHUTDOWN] Stopping scheduler...")
         scheduler.shutdown()
 
-        # 3. Handler 종료
+        # 3. Shutdown handler
         logging.info("[SHUTDOWN] Stopping Slack handler...")
         await handler.close_async()
 

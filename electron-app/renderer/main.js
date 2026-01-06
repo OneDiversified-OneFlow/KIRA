@@ -2,7 +2,7 @@
 // i18n - Simple translation system
 // ============================================================================
 
-let currentLang = 'ko';
+let currentLang = 'en';
 
 // Get nested value from object (e.g., "nav.start" -> translations.nav.start)
 function getNestedValue(obj, key) {
@@ -48,7 +48,7 @@ function updatePageTranslations() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const translated = t(el.getAttribute('data-i18n'));
     if (translated) {
-      // HTML 태그가 포함된 경우 innerHTML 사용
+      // Use innerHTML when HTML tags are included
       if (translated.includes('<a ') || translated.includes('<strong>')) {
         el.innerHTML = translated;
       } else {
@@ -60,12 +60,12 @@ function updatePageTranslations() {
 
 // Field IDs
 const fields = [
-  // 필수 - Slack
+  // Required - Slack
   'SLACK_BOT_TOKEN',
   'SLACK_APP_TOKEN',
   'SLACK_SIGNING_SECRET',
   'SLACK_TEAM_ID',
-  // 필수 - 봇 정보
+  // Required - Bot Information
   'BOT_NAME',
   'BOT_EMAIL',
   'BOT_ORGANIZATION',
@@ -74,11 +74,11 @@ const fields = [
   'BOT_AUTHORIZED_USERS_KR',
   'BOT_ROLE',
   'FILESYSTEM_BASE_DIR',
-  // AI 모델 설정
+  // AI Model Settings
   'MODEL_FOR_SIMPLE',
   'MODEL_FOR_MODERATE',
   'MODEL_FOR_COMPLEX',
-  // MCP 설정
+  // MCP Settings
   'PERPLEXITY_ENABLED',
   'PERPLEXITY_API_KEY',
   'DEEPL_ENABLED',
@@ -113,7 +113,7 @@ const fields = [
   // Computer Use
   'CHROME_ENABLED',
   'CHROME_ALWAYS_PROFILE_SETUP',
-  // 능동 수신 채널
+  // Active Input Channels
   'OUTLOOK_CHECK_ENABLED',
   'OUTLOOK_CHECK_INTERVAL',
   'CONFLUENCE_CHECK_ENABLED',
@@ -121,7 +121,7 @@ const fields = [
   'CONFLUENCE_CHECK_HOURS',
   'JIRA_CHECK_ENABLED',
   'JIRA_CHECK_INTERVAL',
-  // 음성 수신 채널
+  // Voice Input Channel
   'WEB_INTERFACE_ENABLED',
   'WEB_INTERFACE_AUTH_PROVIDER',
   'WEB_INTERFACE_URL',
@@ -130,10 +130,10 @@ const fields = [
   'WEB_MS365_CLIENT_ID',
   'WEB_MS365_CLIENT_SECRET',
   'WEB_MS365_TENANT_ID',
-  // 선제적 제안 기능
+  // Proactive Suggestions
   'DYNAMIC_SUGGESTER_ENABLED',
   'DYNAMIC_SUGGESTER_INTERVAL',
-  // 디버그
+  // Debug
   'DEBUG_SLACK_MESSAGES_ENABLED'
 ];
 
@@ -441,7 +441,7 @@ function setupEventListeners() {
     }
   });
 
-  // WEB_INTERFACE_AUTH_PROVIDER 변경 시 인증 필드 표시/숨김
+  // Show/hide auth fields when WEB_INTERFACE_AUTH_PROVIDER changes
   const authProviderSelect = document.getElementById('WEB_INTERFACE_AUTH_PROVIDER');
   if (authProviderSelect) {
     authProviderSelect.addEventListener('change', () => {
@@ -544,14 +544,14 @@ function initializeExternalChannelFields() {
 
 // Toggle Slack Auth fields visibility based on AUTH_PROVIDER
 function toggleAuthFields(provider) {
-  // Slack 인증 필드 표시/숨김
+  // Show/hide Slack auth fields
   const slackAuthFields = document.querySelectorAll('[data-slack-auth]');
   const shouldShowSlack = provider === 'slack';
   slackAuthFields.forEach(field => {
     field.style.display = shouldShowSlack ? 'block' : 'none';
   });
 
-  // MS365 인증 필드 표시/숨김
+  // Show/hide MS365 auth fields
   const microsoftAuthFields = document.querySelectorAll('[data-microsoft-auth]');
   const shouldShowMicrosoft = provider === 'microsoft';
   microsoftAuthFields.forEach(field => {

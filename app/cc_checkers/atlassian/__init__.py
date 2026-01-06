@@ -1,6 +1,6 @@
 """
 Atlassian Checker using Rovo MCP
-Confluence와 Jira를 Rovo MCP를 통해 모니터링
+Monitors Confluence and Jira through Rovo MCP
 """
 
 from app.cc_checkers.atlassian.confluence_checker import check_confluence_updates

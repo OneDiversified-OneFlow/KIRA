@@ -1,6 +1,6 @@
 """
 Authentication Routes
-사용자 인증 관련 라우트 (/auth/login, /auth/callback, /auth/logout)
+User authentication routes (/auth/login, /auth/callback, /auth/logout)
 """
 
 import logging
@@ -15,27 +15,27 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.get("/login")
 async def login(request: Request):
-    """로그인 시작"""
+    """Start login"""
     return await auth_handler.handle_login(request)
 
 
 @router.get("/callback")
 async def auth_callback(request: Request):
-    """OAuth 콜백 처리"""
+    """Handle OAuth callback"""
     return await auth_handler.handle_callback(request)
 
 
 @router.get("/logout")
 async def logout(request: Request):
-    """로그아웃"""
+    """Logout"""
     provider = request.session.get('user', {}).get('provider', 'unknown')
     request.session.clear()
 
     return HTMLResponse(
         content=f"""
-        <h1>로그아웃 완료</h1>
-        <p>{provider.title()} 계정에서 로그아웃되었습니다.</p>
-        <p><a href="/">다시 로그인</a></p>
+        <h1>Logout Complete</h1>
+        <p>You have been logged out from your {provider.title()} account.</p>
+        <p><a href="/">Log in again</a></p>
         """,
         status_code=200
     )
@@ -43,7 +43,7 @@ async def logout(request: Request):
 
 @router.get("/status")
 async def auth_status(request: Request):
-    """현재 인증 상태"""
+    """Current authentication status"""
     user = request.session.get('user')
 
     if not user:

@@ -1,6 +1,6 @@
 """
 OAuth Session Store
-OAuth 플로우 중 임시 데이터를 파일 기반으로 저장
+File-based storage for temporary data during OAuth flow
 """
 
 import os
@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 
 class OAuthSessionStore:
     """
-    OAuth 세션 데이터를 파일 시스템에 저장
-    서버 재시작해도 OAuth 플로우를 계속할 수 있음
+    Store OAuth session data in file system
+    Allows OAuth flow to continue even after server restart
     """
 
     def __init__(self, store_path: Optional[Path] = None):
         """
         Args:
-            store_path: 세션 데이터 저장 경로
+            store_path: Path to store session data
         """
         if store_path is None:
             settings = get_settings()
@@ -35,12 +35,12 @@ class OAuthSessionStore:
         self.store_path.mkdir(parents=True, exist_ok=True)
         self.session_file = self.store_path / "sessions.json"
 
-        # 초기화 및 만료된 세션 정리
+        # Initialize and cleanup expired sessions
         self._load_sessions()
         self._cleanup_expired()
 
     def _load_sessions(self) -> Dict[str, Any]:
-        """세션 데이터 로드"""
+        """Load session data"""
         if self.session_file.exists():
             try:
                 with open(self.session_file, 'r') as f:
@@ -51,7 +51,7 @@ class OAuthSessionStore:
         return {}
 
     def _save_sessions(self, sessions: Dict[str, Any]):
-        """세션 데이터 저장"""
+        """Save session data"""
         try:
             with open(self.session_file, 'w') as f:
                 json.dump(sessions, f, indent=2, default=str)
@@ -59,7 +59,7 @@ class OAuthSessionStore:
             logger.error(f"Failed to save OAuth sessions: {e}")
 
     def _cleanup_expired(self):
-        """만료된 세션 정리 (24시간 이상 된 세션)"""
+        """Clean up expired sessions (older than 24 hours)"""
         sessions = self._load_sessions()
         now = datetime.now()
         cleaned = {}
@@ -79,14 +79,14 @@ class OAuthSessionStore:
 
     def store(self, state: str, data: Dict[str, Any]) -> bool:
         """
-        OAuth 세션 데이터 저장
+        Store OAuth session data
 
         Args:
-            state: OAuth state 파라미터
-            data: 저장할 데이터 (code_verifier 등)
+            state: OAuth state parameter
+            data: Data to store (code_verifier, etc.)
 
         Returns:
-            저장 성공 여부
+            Whether storage was successful
         """
         try:
             sessions = self._load_sessions()
@@ -103,13 +103,13 @@ class OAuthSessionStore:
 
     def retrieve(self, state: str) -> Optional[Dict[str, Any]]:
         """
-        OAuth 세션 데이터 가져오기
+        Retrieve OAuth session data
 
         Args:
-            state: OAuth state 파라미터
+            state: OAuth state parameter
 
         Returns:
-            세션 데이터 또는 None
+            Session data or None
         """
         sessions = self._load_sessions()
         data = sessions.get(state)
@@ -123,13 +123,13 @@ class OAuthSessionStore:
 
     def delete(self, state: str) -> bool:
         """
-        OAuth 세션 데이터 삭제
+        Delete OAuth session data
 
         Args:
-            state: OAuth state 파라미터
+            state: OAuth state parameter
 
         Returns:
-            삭제 성공 여부
+            Whether deletion was successful
         """
         try:
             sessions = self._load_sessions()
@@ -145,10 +145,10 @@ class OAuthSessionStore:
 
     def clear_all(self) -> bool:
         """
-        모든 세션 데이터 삭제
+        Delete all session data
 
         Returns:
-            삭제 성공 여부
+            Whether deletion was successful
         """
         try:
             self._save_sessions({})
@@ -159,5 +159,5 @@ class OAuthSessionStore:
             return False
 
 
-# 싱글톤 인스턴스
+# Singleton instance
 oauth_session_store = OAuthSessionStore()

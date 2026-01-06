@@ -1,8 +1,8 @@
 """
-간단한 대화 처리 에이전트 (Simple Chat Agent)
+Simple Chat Agent
 
-이 모듈은 간단한 질문/대화를 빠르게 처리하고,
-복잡한 작업은 orchestrator로 넘깁니다.
+This module handles simple questions/conversations quickly,
+and forwards complex tasks to the orchestrator.
 """
 
 import logging

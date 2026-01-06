@@ -1,6 +1,6 @@
 """
 Email Tasks Database Manager
-이메일에서 추출한 할 일을 관리하는 SQLite 데이터베이스
+SQLite database for managing tasks extracted from emails
 """
 import sqlite3
 import logging
@@ -13,7 +13,7 @@ settings = get_settings()
 
 
 def get_db_path() -> Path:
-    """데이터베이스 파일 경로 반환"""
+    """Return database file path"""
     base_dir = settings.FILESYSTEM_BASE_DIR or "."
     db_dir = Path(base_dir) / "db"
     db_dir.mkdir(parents=True, exist_ok=True)
@@ -21,7 +21,7 @@ def get_db_path() -> Path:
 
 
 def init_db():
-    """데이터베이스 초기화 및 테이블 생성"""
+    """Initialize database and create tables"""
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -59,20 +59,20 @@ def add_task(
     channel_id: Optional[str] = None
 ) -> int:
     """
-    새 할 일 추가
+    Add new task
 
     Args:
-        email_id: 이메일 ID
-        sender: 발신자
-        subject: 이메일 제목
-        task_description: 할 일 설명
-        priority: 우선순위 (low/medium/high)
-        user_id: 알림을 받을 사용자 ID
-        text: 알림 메시지 내용
-        channel_id: 알림을 보낼 채널 ID
+        email_id: Email ID
+        sender: Sender
+        subject: Email subject
+        task_description: Task description
+        priority: Priority (low/medium/high)
+        user_id: User ID to receive notification
+        text: Notification message content
+        channel_id: Channel ID to send notification
 
     Returns:
-        생성된 task의 ID
+        ID of created task
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
@@ -94,13 +94,13 @@ def add_task(
 
 def get_pending_tasks(limit: int = 100) -> List[Dict[str, Any]]:
     """
-    대기 중인 할 일 목록 조회
+    Get list of pending tasks
 
     Args:
-        limit: 최대 조회 개수
+        limit: Maximum number to retrieve
 
     Returns:
-        할 일 목록 (딕셔너리 리스트)
+        List of tasks (list of dictionaries)
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
@@ -129,13 +129,13 @@ def get_pending_tasks(limit: int = 100) -> List[Dict[str, Any]]:
 
 def complete_task(task_id: int) -> bool:
     """
-    할 일 완료 처리 (큐에 들어간 후)
+    Mark task as complete (after entering queue)
 
     Args:
-        task_id: 할 일 ID
+        task_id: Task ID
 
     Returns:
-        성공 여부
+        Whether successful
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)

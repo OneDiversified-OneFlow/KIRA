@@ -601,7 +601,7 @@ body {
 }
 
 .log-line.info {
-  color: #e8eaed;  /* 기본 흰색/회색 - INFO 로그는 빨갛게 표시 안함 */
+  color: #e8eaed;  /* Default white/gray - INFO logs should not be red */
 }
 
 .log-line.debug {

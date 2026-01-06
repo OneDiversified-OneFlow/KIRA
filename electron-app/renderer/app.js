@@ -77,14 +77,14 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
   const startBtn = document.getElementById('startBtn');
 
   if (result.success) {
-    status.textContent = '✓ 설정이 저장되었습니다!';
+    status.textContent = '✓ Settings saved successfully!';
     status.className = 'status success';
 
     // Show start button, hide save button
     saveBtn.style.display = 'none';
     startBtn.style.display = 'block';
   } else {
-    status.textContent = '✗ 저장에 실패했습니다';
+    status.textContent = '✗ Failed to save settings';
     status.className = 'status error';
   }
 });
@@ -96,7 +96,7 @@ document.getElementById('startBtn').addEventListener('click', async () => {
   const logSection = document.getElementById('logSection');
   const logContainer = document.getElementById('logContainer');
 
-  status.textContent = '서버를 시작하는 중...';
+  status.textContent = 'Starting server...';
   status.className = 'status';
 
   // Clear previous logs
@@ -109,10 +109,10 @@ document.getElementById('startBtn').addEventListener('click', async () => {
   const result = await window.api.startServer();
 
   if (result.success) {
-    status.textContent = '✓ 서버가 시작되었습니다!';
+    status.textContent = '✓ Server started successfully!';
     status.className = 'status success';
     startBtn.disabled = true;
-    startBtn.textContent = '실행 중...';
+    startBtn.textContent = 'Running...';
   } else {
     status.textContent = `✗ ${result.message}`;
     status.className = 'status error';

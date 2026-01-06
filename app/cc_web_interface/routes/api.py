@@ -1,6 +1,6 @@
 """
 API Routes
-일반 API 엔드포인트
+General API endpoints
 """
 
 import logging
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/api", tags=["api"])
 
 @router.get("/config")
 async def get_config():
-    """STT Provider 설정 반환"""
+    """Return STT Provider configuration"""
     provider = get_stt_provider()
     return {
         "provider_type": provider.get_provider_type(),
@@ -24,7 +24,7 @@ async def get_config():
 
 @router.get("/health")
 async def health_check():
-    """헬스 체크"""
+    """Health check"""
     return {
         "status": "healthy",
         "service": "KIRA Web Interface"

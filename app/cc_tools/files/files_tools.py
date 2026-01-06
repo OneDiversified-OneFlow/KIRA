@@ -1,6 +1,6 @@
 """
 Files Tools for Claude Code SDK
-파일 저장/변환 관련 도구
+Tools for file saving/conversion
 """
 
 import base64
@@ -15,7 +15,7 @@ from app.config.settings import get_settings
 
 
 def get_base_dir() -> Path:
-    """파일 저장 기본 디렉토리 반환"""
+    """Return base directory for file storage"""
     settings = get_settings()
     base_dir = settings.FILESYSTEM_BASE_DIR
     if not base_dir:
@@ -25,45 +25,45 @@ def get_base_dir() -> Path:
 
 @tool(
     "save_base64_image",
-    "base64로 인코딩된 이미지 데이터를 파일로 저장합니다. Tableau 등에서 받은 이미지를 저장할 때 사용하세요.",
+    "Saves base64-encoded image data to a file. Use this when saving images received from Tableau, etc.",
     {
         "type": "object",
         "properties": {
             "file_path": {
                 "type": "string",
-                "description": "저장할 파일 경로 (예: files/C12345/dashboard.png). FILESYSTEM_BASE_DIR 기준 상대경로 또는 절대경로"
+                "description": "File path to save (e.g., files/C12345/dashboard.png). Relative path from FILESYSTEM_BASE_DIR or absolute path"
             },
             "base64_data": {
                 "type": "string",
-                "description": "base64로 인코딩된 이미지 데이터 (data:image/png;base64, 접두사 있어도 됨)"
+                "description": "Base64-encoded image data (with or without data:image/png;base64, prefix)"
             }
         },
         "required": ["file_path", "base64_data"]
     }
 )
 async def save_base64_image(args: Dict[str, Any]) -> Dict[str, Any]:
-    """base64 이미지를 파일로 저장"""
+    """Save base64 image to file"""
     file_path = args["file_path"]
     base64_data = args["base64_data"]
 
     try:
-        # data:image/png;base64, 접두사 제거
+        # Remove data:image/png;base64, prefix
         if "," in base64_data:
             base64_data = base64_data.split(",", 1)[1]
 
-        # base64 디코딩
+        # Base64 decoding
         image_data = base64.b64decode(base64_data)
 
-        # 경로 처리
+        # Path processing
         if not os.path.isabs(file_path):
             full_path = get_base_dir() / file_path
         else:
             full_path = Path(file_path)
 
-        # 디렉토리 생성
+        # Create directory
         full_path.parent.mkdir(parents=True, exist_ok=True)
 
-        # 파일 저장
+        # Save file
         with open(full_path, "wb") as f:
             f.write(image_data)
 
@@ -72,7 +72,7 @@ async def save_base64_image(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": True,
-                    "message": f"이미지 저장 완료",
+                    "message": f"Image saved successfully",
                     "path": str(full_path),
                     "size_bytes": len(image_data)
                 }, ensure_ascii=False, indent=2)
@@ -85,7 +85,7 @@ async def save_base64_image(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": False,
-                    "error": f"base64 디코딩 실패: {str(e)}"
+                    "error": f"Base64 decoding failed: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "isError": True
@@ -96,7 +96,7 @@ async def save_base64_image(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": False,
-                    "error": f"파일 저장 실패: {str(e)}"
+                    "error": f"File save failed: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "isError": True
@@ -105,24 +105,24 @@ async def save_base64_image(args: Dict[str, Any]) -> Dict[str, Any]:
 
 @tool(
     "read_file_as_base64",
-    "파일을 읽어서 base64로 인코딩합니다. 이미지 파일을 Slack에 업로드하기 전 등에 사용하세요.",
+    "Reads a file and encodes it as base64. Use this before uploading image files to Slack, etc.",
     {
         "type": "object",
         "properties": {
             "file_path": {
                 "type": "string",
-                "description": "읽을 파일 경로. FILESYSTEM_BASE_DIR 기준 상대경로 또는 절대경로"
+                "description": "File path to read. Relative path from FILESYSTEM_BASE_DIR or absolute path"
             }
         },
         "required": ["file_path"]
     }
 )
 async def read_file_as_base64(args: Dict[str, Any]) -> Dict[str, Any]:
-    """파일을 base64로 읽기"""
+    """Read file as base64"""
     file_path = args["file_path"]
 
     try:
-        # 경로 처리
+        # Path processing
         if not os.path.isabs(file_path):
             full_path = get_base_dir() / file_path
         else:
@@ -134,19 +134,19 @@ async def read_file_as_base64(args: Dict[str, Any]) -> Dict[str, Any]:
                     "type": "text",
                     "text": json.dumps({
                         "success": False,
-                        "error": f"파일을 찾을 수 없습니다: {full_path}"
+                        "error": f"File not found: {full_path}"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "isError": True
             }
 
-        # 파일 읽기 및 base64 인코딩
+        # Read file and encode as base64
         with open(full_path, "rb") as f:
             file_data = f.read()
 
         base64_data = base64.b64encode(file_data).decode("utf-8")
 
-        # MIME 타입 추정
+        # Estimate MIME type
         suffix = full_path.suffix.lower()
         mime_types = {
             ".png": "image/png",
@@ -177,14 +177,14 @@ async def read_file_as_base64(args: Dict[str, Any]) -> Dict[str, Any]:
                 "type": "text",
                 "text": json.dumps({
                     "success": False,
-                    "error": f"파일 읽기 실패: {str(e)}"
+                    "error": f"File read failed: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "isError": True
         }
 
 
-# 도구 등록
+# Register tools
 files_tools = [save_base64_image, read_file_as_base64]
 
 

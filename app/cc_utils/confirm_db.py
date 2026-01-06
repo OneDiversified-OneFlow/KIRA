@@ -1,6 +1,6 @@
 """
 Confirm SQLite Database Manager
-사용자 확인 요청을 관리하는 SQLite 데이터베이스
+SQLite database for managing user confirmation requests
 """
 
 import sqlite3
@@ -14,7 +14,7 @@ from app.config.settings import get_settings
 
 
 def get_db_path() -> Path:
-    """SQLite 데이터베이스 파일 경로 반환"""
+    """Return SQLite database file path"""
     settings = get_settings()
     base_dir = settings.FILESYSTEM_BASE_DIR or os.getcwd()
     db_dir = Path(base_dir) / "db"
@@ -23,14 +23,14 @@ def get_db_path() -> Path:
 
 
 def get_connection() -> sqlite3.Connection:
-    """SQLite 연결 반환 (Row factory 설정)"""
+    """Return SQLite connection (with Row factory set)"""
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    """데이터베이스 초기화 및 테이블 생성"""
+    """Initialize database and create tables"""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -52,7 +52,7 @@ def init_db():
         )
     """)
 
-    # 인덱스 생성
+    # Create indexes
     cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_confirm_id
         ON confirms(confirm_id)
@@ -69,16 +69,16 @@ def init_db():
 
 def cancel_user_pending_confirms(user_id: str, channel_id: str, thread_ts: str = None) -> int:
     """
-    특정 채널/스레드에서 특정 사용자의 pending confirm들을 expired 상태로 변경
-    새 제안이 나갈 때 이전 제안들을 취소하기 위해 사용
+    Change pending confirms for a specific user in a channel/thread to expired status
+    Used to cancel previous proposals when a new proposal is sent
 
     Args:
-        user_id: 사용자 ID
-        channel_id: 채널 ID
-        thread_ts: 스레드 타임스탬프 (None이면 메인 채널만)
+        user_id: User ID
+        channel_id: Channel ID
+        thread_ts: Thread timestamp (None for main channel only)
 
     Returns:
-        취소된 confirm 수
+        Number of cancelled confirms
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -86,7 +86,7 @@ def cancel_user_pending_confirms(user_id: str, channel_id: str, thread_ts: str =
     updated_at = datetime.now().isoformat()
 
     if thread_ts:
-        # 특정 스레드의 pending만 취소
+        # Cancel pending only in specific thread
         cursor.execute("""
             UPDATE confirms
             SET confirmed = -2,
@@ -95,7 +95,7 @@ def cancel_user_pending_confirms(user_id: str, channel_id: str, thread_ts: str =
             WHERE user_id = ? AND channel_id = ? AND thread_ts = ? AND confirmed = 0
         """, (updated_at, user_id, channel_id, thread_ts))
     else:
-        # 메인 채널(thread_ts=NULL)의 pending만 취소
+        # Cancel pending only in main channel (thread_ts=NULL)
         cursor.execute("""
             UPDATE confirms
             SET confirmed = -2,
@@ -121,24 +121,24 @@ def add_confirm_request(
     thread_ts: str = None
 ) -> bool:
     """
-    새로운 confirm 요청 추가
-    추가 전에 해당 채널에서 해당 사용자의 이전 pending confirm들을 자동으로 취소함
+    Add new confirm request
+    Automatically cancels previous pending confirms for this user in the channel before adding
 
     Args:
-        confirm_id: confirm 고유 ID
-        channel_id: 채널 ID
-        user_id: 확인을 받아야 하는 사용자 ID
-        user_name: 사용자 이름
-        confirm_message: 확인 메시지 ("예전에 도와드린 적 있는데 도와드릴까요?")
-        original_request_text: 원본 요청 텍스트
-        thread_ts: 스레드 타임스탬프 (선택, 스레드 격리용)
+        confirm_id: Unique confirm ID
+        channel_id: Channel ID
+        user_id: User ID who needs to confirm
+        user_name: User name
+        confirm_message: Confirmation message ("Would you like me to help you with this?")
+        original_request_text: Original request text
+        thread_ts: Thread timestamp (optional, for thread isolation)
 
     Returns:
-        추가 성공 여부
+        Whether addition was successful
     """
     import logging
 
-    # 먼저 해당 채널/스레드에서 해당 사용자의 이전 pending confirm들을 취소
+    # First cancel previous pending confirms for this user in the channel/thread
     cancelled = cancel_user_pending_confirms(user_id, channel_id, thread_ts)
     if cancelled > 0:
         logging.info(f"[CONFIRM_DB] Cancelled {cancelled} previous pending confirms for user {user_id} in channel {channel_id} (thread_ts={thread_ts})")
@@ -160,7 +160,7 @@ def add_confirm_request(
         conn.commit()
         success = True
     except sqlite3.IntegrityError:
-        # confirm_id 중복 시
+        # Duplicate confirm_id
         success = False
     finally:
         conn.close()
@@ -175,16 +175,16 @@ def update_confirm_response(
     response: str
 ) -> bool:
     """
-    confirm 응답 업데이트
+    Update confirm response
 
     Args:
-        confirm_id: confirm ID
-        user_id: 사용자 ID
-        approved: 승인 여부 (True: 승인, False: 거부)
-        response: 사용자의 실제 응답 텍스트
+        confirm_id: Confirm ID
+        user_id: User ID
+        approved: Whether approved (True: approved, False: rejected)
+        response: User's actual response text
 
     Returns:
-        업데이트 성공 여부
+        Whether update was successful
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -211,13 +211,13 @@ def update_confirm_response(
 
 def get_confirm_by_id(confirm_id: str) -> Optional[Dict[str, Any]]:
     """
-    특정 confirm 조회
+    Get specific confirm
 
     Args:
-        confirm_id: confirm ID
+        confirm_id: Confirm ID
 
     Returns:
-        confirm 정보 또는 None
+        Confirm info or None
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -238,18 +238,18 @@ def get_confirm_by_id(confirm_id: str) -> Optional[Dict[str, Any]]:
 
 def get_channel_pending_confirms(channel_id: str, user_id: str, thread_ts: str = None) -> List[Dict[str, Any]]:
     """
-    특정 채널에서 특정 사용자의 대기 중인 confirm 조회 (최근 1일 이내)
-    thread_ts로 스레드 격리:
-    - Dynamic suggester confirm (thread_ts=NULL): 어디서든 응답 가능
-    - Proactive suggester confirm (thread_ts=값): 해당 스레드에서만 응답 가능
+    Get pending confirms for a specific user in a channel (within last 24 hours)
+    Thread isolation via thread_ts:
+    - Dynamic suggester confirm (thread_ts=NULL): Can respond from anywhere
+    - Proactive suggester confirm (thread_ts=value): Can only respond in that thread
 
     Args:
-        channel_id: 채널 ID
-        user_id: 사용자 ID
-        thread_ts: 스레드 타임스탬프 (None이면 메인 채널만, 값이 있으면 해당 스레드 또는 NULL confirm)
+        channel_id: Channel ID
+        user_id: User ID
+        thread_ts: Thread timestamp (None for main channel only, value for specific thread or NULL confirm)
 
     Returns:
-        대기 중인 confirm 리스트 (최근 1일 이내)
+        List of pending confirms (within last 24 hours)
     """
     conn = get_connection()
     cursor = conn.cursor()

@@ -1,6 +1,6 @@
 """
 X (Twitter) OAuth 2.0 PKCE Authentication
-X API v2 사용자 인증
+X API v2 user authentication
 """
 
 import hashlib
@@ -30,46 +30,46 @@ SCOPES = [
     "users.read",
     "follows.read",
     "follows.write",
-    "offline.access",  # Refresh Token 발급
+    "offline.access",  # Issue Refresh Token
 ]
 
-# 토큰 저장 경로
+# Token storage path
 def get_token_cache_dir() -> Path:
-    """X OAuth 토큰 캐시 디렉토리 경로 반환"""
+    """Return X OAuth token cache directory path"""
     base_dir = settings.FILESYSTEM_BASE_DIR or os.getcwd()
     cache_dir = Path(base_dir) / "data" / "bot_tokens"
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir
 
 def get_token_cache_file() -> Path:
-    """X OAuth 토큰 캐시 파일 경로 반환"""
+    """Return X OAuth token cache file path"""
     return get_token_cache_dir() / "x_oauth_token.json"
 
 
 def generate_code_verifier() -> str:
-    """PKCE Code Verifier 생성 (43-128자 랜덤 문자열)"""
+    """Generate PKCE Code Verifier (43-128 character random string)"""
     return secrets.token_urlsafe(64)[:128]
 
 
 def generate_code_challenge(code_verifier: str) -> str:
-    """PKCE Code Challenge 생성 (SHA256 해시)"""
+    """Generate PKCE Code Challenge (SHA256 hash)"""
     sha256 = hashlib.sha256(code_verifier.encode('utf-8')).digest()
-    # Base64 URL-safe encoding (패딩 제거)
+    # Base64 URL-safe encoding (remove padding)
     import base64
     return base64.urlsafe_b64encode(sha256).decode('utf-8').rstrip('=')
 
 
 def get_authorization_url(redirect_uri: str, state: str, code_challenge: str) -> str:
     """
-    X OAuth 2.0 인증 URL 생성
+    Generate X OAuth 2.0 authorization URL
 
     Args:
-        redirect_uri: 콜백 URL
-        state: CSRF 방지 토큰
+        redirect_uri: Callback URL
+        state: CSRF prevention token
         code_challenge: PKCE code challenge
 
     Returns:
-        인증 URL
+        Authorization URL
     """
     params = {
         "response_type": "code",
@@ -81,7 +81,7 @@ def get_authorization_url(redirect_uri: str, state: str, code_challenge: str) ->
         "code_challenge_method": "S256",
     }
 
-    # URL 생성
+    # Generate URL
     from urllib.parse import urlencode
     return f"{X_AUTH_URL}?{urlencode(params)}"
 
@@ -92,15 +92,15 @@ async def exchange_code_for_token(
     redirect_uri: str
 ) -> Optional[Dict[str, Any]]:
     """
-    Authorization Code를 Access Token으로 교환
+    Exchange Authorization Code for Access Token
 
     Args:
         code: Authorization code
         code_verifier: PKCE code verifier
-        redirect_uri: 콜백 URL
+        redirect_uri: Callback URL
 
     Returns:
-        토큰 정보 (access_token, refresh_token, expires_in 등)
+        Token info (access_token, refresh_token, expires_in, etc.)
     """
     try:
         # Basic Authentication (Client ID:Client Secret)
@@ -139,13 +139,13 @@ async def exchange_code_for_token(
 
 async def refresh_access_token(refresh_token: str) -> Optional[Dict[str, Any]]:
     """
-    Refresh Token으로 새 Access Token 발급
+    Issue new Access Token using Refresh Token
 
     Args:
         refresh_token: Refresh token
 
     Returns:
-        새 토큰 정보
+        New token info
     """
     try:
         import base64
@@ -177,16 +177,16 @@ async def refresh_access_token(refresh_token: str) -> Optional[Dict[str, Any]]:
 
 def save_token(token_data: Dict[str, Any]) -> None:
     """
-    토큰을 파일에 저장
+    Save token to file
 
     Args:
-        token_data: 토큰 정보
+        token_data: Token info
     """
     try:
         token_cache_file = get_token_cache_file()
 
-        # 만료 시간 계산
-        expires_in = token_data.get("expires_in", 7200)  # 기본 2시간
+        # Calculate expiration time
+        expires_in = token_data.get("expires_in", 7200)  # Default 2 hours
         expires_at = datetime.now() + timedelta(seconds=expires_in)
 
         cache_data = {
@@ -198,7 +198,7 @@ def save_token(token_data: Dict[str, Any]) -> None:
             "created_at": datetime.now().isoformat(),
         }
 
-        # JSON 파일로 저장
+        # Save as JSON file
         with open(token_cache_file, 'w', encoding='utf-8') as f:
             json.dump(cache_data, f, indent=2)
 
@@ -210,10 +210,10 @@ def save_token(token_data: Dict[str, Any]) -> None:
 
 def load_token() -> Optional[Dict[str, Any]]:
     """
-    저장된 토큰 불러오기
+    Load saved token
 
     Returns:
-        토큰 정보 (없으면 None)
+        Token info (None if not found)
     """
     try:
         token_cache_file = get_token_cache_file()
@@ -224,7 +224,7 @@ def load_token() -> Optional[Dict[str, Any]]:
         with open(token_cache_file, 'r', encoding='utf-8') as f:
             token_data = json.load(f)
 
-        # 만료 시간 확인 (만료되어도 토큰 데이터는 반환 - refresh token이 유효할 수 있음)
+        # Check expiration time (return token data even if expired - refresh token may still be valid)
         expires_at_str = token_data.get("expires_at")
         if expires_at_str:
             expires_at = datetime.fromisoformat(expires_at_str)
@@ -240,10 +240,10 @@ def load_token() -> Optional[Dict[str, Any]]:
 
 async def get_valid_access_token() -> Optional[str]:
     """
-    유효한 Access Token 가져오기 (필요시 자동 갱신)
+    Get valid Access Token (auto-refresh if needed)
 
     Returns:
-        Access Token (없으면 None)
+        Access Token (None if not available)
     """
     token_data = load_token()
 
@@ -251,13 +251,13 @@ async def get_valid_access_token() -> Optional[str]:
         logging.warning("[X_OAUTH] No cached token found")
         return None
 
-    # 토큰 만료 시간 확인
+    # Check token expiration time
     expires_at_str = token_data.get("expires_at")
     if expires_at_str:
         expires_at = datetime.fromisoformat(expires_at_str)
         time_remaining = expires_at - datetime.now()
 
-        # 토큰이 이미 만료되었거나 곧 만료될 예정 (10분 이내)
+        # Token already expired or will expire soon (within 10 minutes)
         if time_remaining.total_seconds() < 600:
             if time_remaining.total_seconds() < 0:
                 logging.info("[X_OAUTH] Token already expired, refreshing...")
@@ -282,7 +282,7 @@ async def get_valid_access_token() -> Optional[str]:
 
 
 def delete_token() -> None:
-    """저장된 토큰 삭제"""
+    """Delete saved token"""
     try:
         token_cache_file = get_token_cache_file()
         if token_cache_file.exists():

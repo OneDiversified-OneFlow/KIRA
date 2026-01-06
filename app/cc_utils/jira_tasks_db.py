@@ -1,6 +1,6 @@
 """
 Jira Tasks Database Manager
-Jira에서 추출한 할 일을 관리하는 SQLite 데이터베이스
+SQLite database for managing tasks extracted from Jira
 """
 
 import sqlite3
@@ -14,7 +14,7 @@ settings = get_settings()
 
 
 def get_db_path() -> Path:
-    """데이터베이스 파일 경로 반환"""
+    """Return database file path"""
     base_dir = settings.FILESYSTEM_BASE_DIR or "."
     db_dir = Path(base_dir) / "db"
     db_dir.mkdir(parents=True, exist_ok=True)
@@ -22,7 +22,7 @@ def get_db_path() -> Path:
 
 
 def init_db():
-    """데이터베이스 초기화 및 테이블 생성"""
+    """Initialize database and create tables"""
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
@@ -47,7 +47,7 @@ def init_db():
     """
     )
 
-    # issue_key에 유니크 인덱스 추가 (중복 방지)
+    # Add unique index on issue_key (prevent duplicates)
     cursor.execute(
         """
         CREATE UNIQUE INDEX IF NOT EXISTS idx_issue_key
@@ -72,27 +72,27 @@ def add_task(
     channel_id: Optional[str] = None,
 ) -> int:
     """
-    새 할 일 추가 (중복 시 업데이트)
+    Add new task (update if duplicate)
 
     Args:
-        issue_key: Jira 이슈 키 (예: PROJ-123)
-        issue_url: Jira 이슈 URL
-        summary: 이슈 제목
-        status: 이슈 상태
-        priority: 우선순위 (low/medium/high)
-        task_description: 할 일 설명
-        user_id: 알림을 받을 사용자 ID
-        text: 알림 메시지 내용
-        channel_id: 알림을 보낼 채널 ID
+        issue_key: Jira issue key (e.g., PROJ-123)
+        issue_url: Jira issue URL
+        summary: Issue title
+        status: Issue status
+        priority: Priority (low/medium/high)
+        task_description: Task description
+        user_id: User ID to receive notification
+        text: Notification message content
+        channel_id: Channel ID to send notification
 
     Returns:
-        생성된 task의 ID
+        ID of created task
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # 이미 존재하면 업데이트, 없으면 삽입
+    # Update if exists, insert if not
     cursor.execute(
         """
         INSERT INTO jira_tasks
@@ -123,10 +123,10 @@ def add_task(
         ),
     )
 
-    # lastrowid는 INSERT 또는 UPDATE된 행의 ID
+    # lastrowid is the ID of INSERT or UPDATE row
     task_id = cursor.lastrowid
 
-    # UPDATE된 경우 실제 ID 조회
+    # Query actual ID in case of UPDATE
     if cursor.rowcount == 1:
         cursor.execute("SELECT id FROM jira_tasks WHERE issue_key = ?", (issue_key,))
         result = cursor.fetchone()
@@ -144,13 +144,13 @@ def add_task(
 
 def get_pending_tasks(limit: int = 100) -> List[Dict[str, Any]]:
     """
-    대기 중인 할 일 목록 조회
+    Get list of pending tasks
 
     Args:
-        limit: 최대 조회 개수
+        limit: Maximum number to retrieve
 
     Returns:
-        할 일 목록 (딕셔너리 리스트)
+        List of tasks (list of dictionaries)
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
@@ -182,13 +182,13 @@ def get_pending_tasks(limit: int = 100) -> List[Dict[str, Any]]:
 
 def complete_task(task_id: int) -> bool:
     """
-    할 일 완료 처리 (큐에 들어간 후)
+    Mark task as complete (after entering queue)
 
     Args:
-        task_id: 할 일 ID
+        task_id: Task ID
 
     Returns:
-        성공 여부
+        Whether successful
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)
@@ -217,10 +217,10 @@ def complete_task(task_id: int) -> bool:
 
 def get_existing_issue_keys() -> List[str]:
     """
-    DB에 이미 존재하는 issue_key 리스트 반환
+    Return list of issue_keys already existing in DB
 
     Returns:
-        issue_key 리스트
+        List of issue_keys
     """
     db_path = get_db_path()
     conn = sqlite3.connect(db_path)

@@ -1,6 +1,6 @@
 """
 Confirm Tools for Claude Code SDK
-사용자 확인 요청을 처리하는 도구
+Tools for handling user confirmation requests
 """
 
 import json
@@ -16,7 +16,7 @@ from app.cc_utils.confirm_db import add_confirm_request
 
 
 def get_slack_client() -> AsyncWebClient:
-    """Slack AsyncWebClient 인스턴스 반환"""
+    """Return Slack AsyncWebClient instance"""
     settings = get_settings()
     token = settings.SLACK_BOT_TOKEN
     if not token:
@@ -26,55 +26,55 @@ def get_slack_client() -> AsyncWebClient:
 
 @tool(
     "request_confirmation",
-    "사용자에게 확인 메시지를 보내고 응답을 대기합니다. 봇이 명시적으로 호출되지 않았지만 관련 메모리가 있을 때 사용합니다.",
+    "Sends a confirmation message to the user and waits for response. Used when the bot was not explicitly called but there is relevant memory.",
     {
         "type": "object",
         "properties": {
             "channel_id": {
                 "type": "string",
-                "description": "메시지를 보낼 Slack 채널 ID"
+                "description": "Slack channel ID to send message to"
             },
             "user_id": {
                 "type": "string",
-                "description": "확인을 받을 사용자 ID"
+                "description": "User ID to receive confirmation"
             },
             "user_name": {
                 "type": "string",
-                "description": "확인을 받을 사용자 이름"
+                "description": "User name to receive confirmation"
             },
             "confirm_message": {
                 "type": "string",
-                "description": "확인 메시지 (반드시 사용자 이름으로 시작. 예: '철수님, 예전에 도와드린 적 있는데 도와드릴까요?')"
+                "description": "Confirmation message (must start with user name. e.g., 'John, I helped you before, would you like my help?')"
             },
             "original_request_text": {
                 "type": "string",
-                "description": "승인 시 실행할 완전한 명령문 (반드시 봇 이름으로 시작하는 전체 명령 포함. 예: '원하나님, 프로젝트 현황 정리해줘')"
+                "description": "Complete command to execute on approval (must include full command starting with bot name. e.g., 'KIRA, summarize project status')"
             },
             "message_ts": {
                 "type": "string",
-                "description": "원본 메시지 타임스탬프 (스레드 생성용, 선택사항). state_data.current_message.message_ts 사용"
+                "description": "Original message timestamp (for thread creation, optional). Use state_data.current_message.message_ts"
             },
             "thread_ts": {
                 "type": "string",
-                "description": "스레드 타임스탬프 (선택사항). state_data.current_message.thread_ts 사용"
+                "description": "Thread timestamp (optional). Use state_data.current_message.thread_ts"
             }
         },
         "required": ["channel_id", "user_id", "user_name", "confirm_message", "original_request_text"]
     }
 )
 async def confirm_request_confirmation(args: Dict[str, Any]) -> Dict[str, Any]:
-    """사용자에게 confirm 메시지를 보내고 DB에 저장"""
+    """Send confirm message to user and save to DB"""
     channel_id = args["channel_id"]
     user_id = args["user_id"]
     user_name = args["user_name"]
     confirm_message = args["confirm_message"]
     original_request_text = args["original_request_text"]
 
-    # message_ts와 thread_ts는 선택 파라미터
+    # message_ts and thread_ts are optional parameters
     message_ts = args.get("message_ts")
     thread_ts = args.get("thread_ts")
 
-    # 허용된 사용자 검증
+    # Verify authorized user
     from app.cc_slack_handlers import is_authorized_user
 
     if not is_authorized_user(user_name):
@@ -84,20 +84,20 @@ async def confirm_request_confirmation(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"사용자 '{user_name}'는 허용된 사용자가 아닙니다. 확인 메시지를 보낼 수 없습니다."
+                    "message": f"User '{user_name}' is not an authorized user. Cannot send confirmation message."
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
         }
 
     try:
-        # 고유 confirm_id 생성
+        # Generate unique confirm_id
         confirm_id = str(uuid.uuid4())
 
-        # thread_ts 결정: thread_ts > message_ts > None (새 메시지)
+        # Determine thread_ts: thread_ts > message_ts > None (new message)
         final_thread_ts = thread_ts or message_ts
 
-        # DB에 저장 (thread_ts 포함)
+        # Save to DB (including thread_ts)
         success = add_confirm_request(
             confirm_id=confirm_id,
             channel_id=channel_id,
@@ -115,20 +115,20 @@ async def confirm_request_confirmation(args: Dict[str, Any]) -> Dict[str, Any]:
                     "text": json.dumps({
                         "success": False,
                         "error": True,
-                        "message": "confirm 요청 저장 실패 (중복된 confirm_id)"
+                        "message": "Failed to save confirm request (duplicate confirm_id)"
                     }, ensure_ascii=False, indent=2)
                 }],
                 "error": True
             }
 
-        # Slack 메시지 전송
+        # Send Slack message
         client = get_slack_client()
         message_params = {
             "channel": channel_id,
             "text": confirm_message
         }
 
-        # thread_ts가 있을 때만 추가 (없으면 새 메시지로 전송)
+        # Only add thread_ts if present (otherwise send as new message)
         if final_thread_ts:
             message_params["thread_ts"] = final_thread_ts
 
@@ -140,7 +140,7 @@ async def confirm_request_confirmation(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": True,
                     "confirm_id": confirm_id,
-                    "message": "확인 메시지를 전송했습니다.",
+                    "message": "Confirmation message has been sent.",
                     "slack_ts": response.data.get("ts"),
                     "thread_ts": final_thread_ts
                 }, ensure_ascii=False, indent=2)
@@ -154,7 +154,7 @@ async def confirm_request_confirmation(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"Slack 메시지 전송 실패: {e.response['error']}"
+                    "message": f"Failed to send Slack message: {e.response['error']}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
@@ -166,21 +166,21 @@ async def confirm_request_confirmation(args: Dict[str, Any]) -> Dict[str, Any]:
                 "text": json.dumps({
                     "success": False,
                     "error": True,
-                    "message": f"confirm 요청 실패: {str(e)}"
+                    "message": f"Confirm request failed: {str(e)}"
                 }, ensure_ascii=False, indent=2)
             }],
             "error": True
         }
 
 
-# MCP Server 생성
+# Create MCP Server
 confirm_tools = [
     confirm_request_confirmation,
 ]
 
 
 def create_confirm_mcp_server():
-    """Claude Code SDK용 Confirm MCP 서버"""
+    """Confirm MCP server for Claude Code SDK"""
     return create_sdk_mcp_server(
         name="confirm",
         version="1.0.0",

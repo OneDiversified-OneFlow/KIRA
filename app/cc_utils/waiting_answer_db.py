@@ -1,6 +1,6 @@
 """
 Waiting Answer SQLite Database Manager
-응답 대기 질의를 관리하는 SQLite 데이터베이스
+SQLite database for managing pending response queries
 """
 
 import sqlite3
@@ -13,7 +13,7 @@ from app.config.settings import get_settings
 
 
 def get_db_path() -> Path:
-    """SQLite 데이터베이스 파일 경로 반환"""
+    """Return SQLite database file path"""
     settings = get_settings()
     base_dir = settings.FILESYSTEM_BASE_DIR or os.getcwd()
     db_dir = Path(base_dir) / "db"
@@ -22,14 +22,14 @@ def get_db_path() -> Path:
 
 
 def get_connection() -> sqlite3.Connection:
-    """SQLite 연결 반환 (Row factory 설정)"""
+    """Return SQLite connection (with Row factory set)"""
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 
 
 def init_db():
-    """데이터베이스 초기화 및 테이블 생성"""
+    """Initialize database and create tables"""
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -51,18 +51,18 @@ def init_db():
         )
     """)
 
-    # 기존 테이블에 컬럼 추가 (마이그레이션)
+    # Add columns to existing table (migration)
     try:
         cursor.execute("ALTER TABLE waiting_answers ADD COLUMN requester_name TEXT")
     except:
-        pass  # 이미 존재하면 무시
+        pass  # Ignore if already exists
 
     try:
         cursor.execute("ALTER TABLE waiting_answers ADD COLUMN respondent_name TEXT")
     except:
-        pass  # 이미 존재하면 무시
+        pass  # Ignore if already exists
 
-    # 인덱스 생성
+    # Create indexes
     cursor.execute("""
         CREATE INDEX IF NOT EXISTS idx_request_id
         ON waiting_answers(request_id)
@@ -86,18 +86,18 @@ def add_request(
     respondents: List[Dict[str, str]]
 ) -> int:
     """
-    새로운 질의 추가 (여러 응답자에게)
+    Add new query (to multiple respondents)
 
     Args:
-        request_id: 질의 고유 ID
-        channel_id: 질의 생성 채널 ID
-        requester_id: 요청자 Slack User ID
-        requester_name: 요청자 이름
-        request_content: 질의 내용
-        respondents: 응답자 정보 리스트 [{"user_id": "U123", "name": "홍길동"}, ...]
+        request_id: Unique query ID
+        channel_id: Channel ID where query was created
+        requester_id: Requester Slack User ID
+        requester_name: Requester name
+        request_content: Query content
+        respondents: List of respondent info [{"user_id": "U123", "name": "John"}, ...]
 
     Returns:
-        추가된 레코드 수
+        Number of records added
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -125,13 +125,13 @@ def add_request(
 
 def get_user_pending_requests(user_id: str) -> List[Dict[str, Any]]:
     """
-    특정 사용자의 응답 대기 중인 질의 목록 조회 (최근 1일 이내)
+    Get pending queries for a specific user (within last 24 hours)
 
     Args:
-        user_id: 응답자 Slack User ID
+        user_id: Respondent Slack User ID
 
     Returns:
-        응답 대기 질의 리스트 (최근 1일 이내)
+        List of pending queries (within last 24 hours)
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -158,15 +158,15 @@ def update_response(
     response: str
 ) -> bool:
     """
-    특정 질의에 대한 응답 업데이트
+    Update response for a specific query
 
     Args:
-        request_id: 질의 ID
-        user_id: 응답자 User ID
-        response: 응답 내용
+        request_id: Query ID
+        user_id: Respondent User ID
+        response: Response content
 
     Returns:
-        업데이트 성공 여부
+        Whether update was successful
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -191,14 +191,14 @@ def update_response(
 
 def get_request_by_id(request_id: str, user_id: str) -> Optional[Dict[str, Any]]:
     """
-    특정 질의 조회 (특정 사용자 기준)
+    Get specific query (for a specific user)
 
     Args:
-        request_id: 질의 ID
-        user_id: 응답자 User ID
+        request_id: Query ID
+        user_id: Respondent User ID
 
     Returns:
-        질의 정보 또는 None
+        Query info or None
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -219,13 +219,13 @@ def get_request_by_id(request_id: str, user_id: str) -> Optional[Dict[str, Any]]
 
 def get_all_responses_for_request(request_id: str) -> List[Dict[str, Any]]:
     """
-    특정 질의에 대한 모든 응답자의 응답 조회
+    Get all respondents' responses for a specific query
 
     Args:
-        request_id: 질의 ID
+        request_id: Query ID
 
     Returns:
-        모든 응답자의 응답 리스트
+        List of all respondents' responses
     """
     conn = get_connection()
     cursor = conn.cursor()
@@ -247,13 +247,13 @@ def get_all_responses_for_request(request_id: str) -> List[Dict[str, Any]]:
 
 def get_request_progress(request_id: str) -> Dict[str, int]:
     """
-    특정 질의의 진행률 조회
+    Get progress for a specific query
 
     Args:
-        request_id: 질의 ID
+        request_id: Query ID
 
     Returns:
-        {"total": 전체 응답자 수, "completed": 완료된 응답 수}
+        {"total": Total respondent count, "completed": Completed response count}
     """
     conn = get_connection()
     cursor = conn.cursor()

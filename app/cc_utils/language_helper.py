@@ -1,20 +1,20 @@
 """
-언어 감지 유틸리티
+Language Detection Utility
 
-텍스트의 언어를 감지하는 헬퍼 함수들
+Helper functions to detect text language
 """
 
 import re
 
 
 def detect_language(text: str) -> str:
-    """한글 포함 여부로 언어 감지
+    """Detect language by checking for Korean characters
 
     Args:
-        text: 분석할 텍스트
+        text: Text to analyze
 
     Returns:
-        str: "Korean" 또는 "English"
+        str: "Korean" or "English"
     """
     if re.search(r'[가-힣]', text):
         return "Korean"

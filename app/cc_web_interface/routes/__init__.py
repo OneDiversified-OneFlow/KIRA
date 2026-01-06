@@ -1,6 +1,6 @@
 """
 Web Interface Routes
-모든 라우트 모듈 모음
+Collection of all route modules
 """
 
 from app.cc_web_interface.routes.auth import router as auth_router
