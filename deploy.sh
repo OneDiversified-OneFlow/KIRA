@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# KIRA 자동 배포 스크립트
-# Electron 앱과 VitePress 문서를 함께 배포합니다.
+# KIRA Automatic Deployment Script
+# Deploys both Electron app and VitePress documentation.
 #
-# 사용법:
-#   ./deploy.sh                    # package.json 버전 사용
-#   ./deploy.sh 0.1.7              # 특정 버전 지정
-#   ./deploy.sh 0.1.7 --skip-notarize  # notarization 스킵
-#   ./deploy.sh --skip-notarize    # 현재 버전 + notarization 스킵
+# Usage:
+#   ./deploy.sh                    # Use package.json version
+#   ./deploy.sh 0.1.7              # Specify version
+#   ./deploy.sh 0.1.7 --skip-notarize  # Skip notarization
+#   ./deploy.sh --skip-notarize    # Current version + skip notarization
 
-set -e  # 에러 발생 시 스크립트 중단
+set -e  # Stop script on error
 
-# AWS 리전 설정 (S3 버킷: kira-releases)
+# AWS Region setting (S3 bucket: kira-releases)
 export AWS_DEFAULT_REGION=ap-northeast-2
 
-# 인자 파싱
+# Parse arguments
 SKIP_NOTARIZE=false
 VERSION_ARG=""
 
@@ -31,29 +31,29 @@ for arg in "$@"; do
   esac
 done
 
-echo "🚀 KIRA 배포 시작..."
+echo "🚀 Starting KIRA deployment..."
 echo ""
 
-# 프로젝트 루트 디렉토리로 이동
+# Navigate to project root directory
 cd "$(dirname "$0")"
 
 # ===========================
-# 1. 버전 설정
+# 1. Version Setup
 # ===========================
-echo "📦 Step 1: 버전 설정"
+echo "📦 Step 1: Version Setup"
 cd electron-app
 
 if [ -n "$VERSION_ARG" ]; then
   npm version $VERSION_ARG --no-git-tag-version
   CURRENT_VERSION=$VERSION_ARG
-  echo "   지정 버전: $CURRENT_VERSION"
+  echo "   Specified version: $CURRENT_VERSION"
 else
   CURRENT_VERSION=$(node -p "require('./package.json').version")
-  echo "   현재 버전: $CURRENT_VERSION"
+  echo "   Current version: $CURRENT_VERSION"
 fi
 
 if [ "$SKIP_NOTARIZE" = true ]; then
-  echo "   ⚠️  Notarization 스킵"
+  echo "   ⚠️  Skipping notarization"
   export CSC_IDENTITY_AUTO_DISCOVERY=false
 fi
 
@@ -61,49 +61,49 @@ echo ""
 cd ..
 
 # ===========================
-# 2. 문서 내 버전 업데이트
+# 2. Update Version in Documentation
 # ===========================
-echo "📝 Step 2: 문서 내 버전 업데이트"
-# 다운로드 링크의 버전만 교체 (KIRA-X.X.X-arm64.dmg)
+echo "📝 Step 2: Update Version in Documentation"
+# Replace only the version in download links (KIRA-X.X.X-arm64.dmg)
 find vitepress-app -name "*.md" -exec sed -i '' -E "s/KIRA-[0-9]+\.[0-9]+\.[0-9]+-(universal|arm64)\.dmg/KIRA-$CURRENT_VERSION-arm64.dmg/g" {} \;
-echo "   ✅ 문서 버전 $CURRENT_VERSION 으로 업데이트"
+echo "   ✅ Documentation updated to version $CURRENT_VERSION"
 echo ""
 
 # ===========================
-# 3. Electron 앱 빌드 및 배포
+# 3. Build and Deploy Electron App
 # ===========================
-echo "🔨 Step 3: Electron 앱 빌드 및 S3 배포"
+echo "🔨 Step 3: Build and Deploy Electron App to S3"
 cd electron-app
 npm run deploy
-echo "   ✅ Electron 앱 배포 완료"
+echo "   ✅ Electron app deployment complete"
 echo ""
 cd ..
 
 # ===========================
-# 4. VitePress 문서 배포
+# 4. Deploy VitePress Documentation
 # ===========================
-echo "📚 Step 4: VitePress 문서 배포"
+echo "📚 Step 4: Deploy VitePress Documentation"
 cd vitepress-app
 npm run docs:build
 aws s3 sync .vitepress/dist s3://kira-releases --delete --exclude 'download/*' --exclude 'videos/*'
-echo "   ✅ VitePress 문서 배포 완료"
+echo "   ✅ VitePress documentation deployment complete"
 echo ""
 cd ..
 
 # ===========================
-# 5. CloudFront 캐시 무효화
+# 5. Invalidate CloudFront Cache
 # ===========================
-echo "🔄 Step 5: CloudFront 캐시 무효화"
+echo "🔄 Step 5: Invalidate CloudFront Cache"
 aws cloudfront create-invalidation --distribution-id EU03W5ZNSG0E --paths "/*"
-echo "   ✅ CloudFront 캐시 무효화 완료"
+echo "   ✅ CloudFront cache invalidation complete"
 echo ""
 
 # ===========================
-# 완료
+# Complete
 # ===========================
-echo "✨ 배포 완료!"
+echo "✨ Deployment complete!"
 echo ""
-echo "📦 Electron 앱: https://kira.krafton-ai.com/download/KIRA-$CURRENT_VERSION-arm64.dmg"
-echo "📚 문서 사이트: https://kira.krafton-ai.com"
+echo "📦 Electron app: https://kira.krafton-ai.com/download/KIRA-$CURRENT_VERSION-arm64.dmg"
+echo "📚 Documentation site: https://kira.krafton-ai.com"
 echo ""
-echo "🎉 버전 $CURRENT_VERSION 배포가 성공적으로 완료되었습니다!"
+echo "🎉 Version $CURRENT_VERSION has been successfully deployed!"

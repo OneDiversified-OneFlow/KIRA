@@ -30,7 +30,7 @@ kira/                           # Root directory
 │   ├── main.js                # Electron main process - manages Python server lifecycle
 │   ├── preload.js             # Secure IPC bridge
 │   ├── renderer/              # User interface
-│   │   ├── index.html         # Main UI structure (환경변수 설정 UI)
+│   │   ├── index.html         # Main UI structure (Environment Variables Settings UI)
 │   │   ├── main.css           # Dark theme styling
 │   │   └── main.js            # UI logic, server control, config management
 │   ├── package.json           # Node dependencies and build config
@@ -39,38 +39,38 @@ kira/                           # Root directory
 ├── app/                       # Python AI server (runs invisibly in background)
 │   ├── main.py               # Server entry point, worker/scheduler setup
 │   ├── cc_agents/            # AI agent modules
-│   │   ├── bot_call_detector/        # 봇 호출 판단 (Haiku)
-│   │   ├── simple_chat/              # 간단한 대화 (Haiku)
-│   │   ├── operator/                 # 복잡한 작업 수행 (Sonnet)
-│   │   ├── memory_retriever/         # 메모리 검색 (Haiku)
-│   │   ├── memory_manager/           # 메모리 저장 (Haiku)
-│   │   ├── answer_aggregator/        # 답변 수집 (Haiku)
-│   │   ├── proactive_suggester/      # 선제적 제안 (Sonnet)
-│   │   └── proactive_confirm/        # 제안 승인 요청 (Haiku)
-│   ├── cc_checkers/          # 능동 수신 채널 (Proactive monitors)
-│   │   ├── outlook/          # Outlook 이메일 체커
-│   │   └── atlassian/        # Confluence/Jira 체커 (Rovo MCP)
+│   │   ├── bot_call_detector/        # Bot call detection (Haiku)
+│   │   ├── simple_chat/              # Simple conversation (Haiku)
+│   │   ├── operator/                 # Complex task execution (Sonnet)
+│   │   ├── memory_retriever/         # Memory search (Haiku)
+│   │   ├── memory_manager/           # Memory storage (Haiku)
+│   │   ├── answer_aggregator/        # Answer collection (Haiku)
+│   │   ├── proactive_suggester/      # Proactive suggestions (Sonnet)
+│   │   └── proactive_confirm/        # Suggestion approval request (Haiku)
+│   ├── cc_checkers/          # Proactive Receiver Channels (Proactive monitors)
+│   │   ├── outlook/          # Outlook email checker
+│   │   └── atlassian/        # Confluence/Jira checker (Rovo MCP)
 │   ├── cc_tools/             # MCP tool implementations
-│   │   ├── slack/            # Slack 도구 (11개)
-│   │   ├── outlook/          # Outlook 도구 (7개)
-│   │   ├── scheduler/        # 메시지 스케줄링
-│   │   ├── waiting_answer/   # 답변 대기 관리
-│   │   ├── confirm/          # 사용자 승인 관리
-│   │   ├── email_tasks/      # 이메일 작업 DB
-│   │   ├── jira_tasks/       # Jira 작업 DB
-│   │   └── x/                # X (Twitter) 도구
-│   ├── cc_web_interface/     # 웹 서버 / 음성 수신 채널
-│   │   ├── server.py         # FastAPI 서버 (port 8000, HTTPS)
-│   │   ├── auth_handler.py   # 인증 라우터
+│   │   ├── slack/            # Slack tools (11)
+│   │   ├── outlook/          # Outlook tools (7)
+│   │   ├── scheduler/        # Message scheduling
+│   │   ├── waiting_answer/   # Answer waiting management
+│   │   ├── confirm/          # User approval management
+│   │   ├── email_tasks/      # Email tasks DB
+│   │   ├── jira_tasks/       # Jira tasks DB
+│   │   └── x/                # X (Twitter) tools
+│   ├── cc_web_interface/     # Web Server / Voice Input Channel
+│   │   ├── server.py         # FastAPI server (port 8000, HTTPS)
+│   │   ├── auth_handler.py   # Auth router
 │   │   ├── auth_azure.py     # MS365 OAuth
 │   │   └── auth_slack.py     # Slack OAuth
-│   ├── cc_slack_handlers.py  # Slack 이벤트 핸들러
-│   ├── queueing_extended.py  # 3-tier 큐 시스템
-│   ├── scheduler.py          # APScheduler 관리
+│   ├── cc_slack_handlers.py  # Slack event handlers
+│   ├── queueing_extended.py  # 3-tier queue system
+│   ├── scheduler.py          # APScheduler management
 │   └── config/               # Configuration management
-│       ├── settings.py       # Pydantic settings (환경변수 정의)
+│       ├── settings.py       # Pydantic settings (environment variable definitions)
 │       └── env/
-│           ├── dev.env       # 개발 환경변수
+│           ├── dev.env       # Development environment variables
 │           └── credential.json  # GCP service account
 │
 └── docs/                     # User-facing documentation
@@ -92,37 +92,37 @@ kira/                           # Root directory
 - **ALL** configuration through GUI
 - **DEFAULT** values for everything optional
 
-### 3. 환경변수 동기화 필수
-**CRITICAL**: 환경변수를 추가/수정할 때는 반드시 **5곳을 모두 업데이트**해야 합니다:
+### 3. Environment Variable Synchronization Required
+**CRITICAL**: When adding/modifying environment variables, you **MUST update all 5 locations**:
 
-1. **app/config/settings.py** - Pydantic 모델 정의
-2. **app/config/env/dev.env** - 개발 기본값
-3. **electron-app/renderer/index.html** - UI 입력 필드
-4. **electron-app/renderer/main.js** - `fields` 배열 (저장/로드할 필드 목록)
-5. **electron-app/main.js** - config.env 저장 섹션 (`sections` 객체)
+1. **app/config/settings.py** - Pydantic model definition
+2. **app/config/env/dev.env** - Development default values
+3. **electron-app/renderer/index.html** - UI input fields
+4. **electron-app/renderer/main.js** - `fields` array (list of fields to save/load)
+5. **electron-app/main.js** - config.env save section (`sections` object)
 
-**특히 `renderer/main.js`의 `fields` 배열을 빠뜨리기 쉬우니 주의하세요!**
-이 배열에 없는 필드는 저장/로드 로직에서 무시됩니다.
+**Be especially careful not to forget the `fields` array in `renderer/main.js`!**
+Fields not in this array are ignored by the save/load logic.
 
-순서도 일치시켜야 합니다:
+The order must also match:
 ```
-1. Slack 연동
-2. 봇 정보
-3. MCP 설정 (Perplexity, DeepL, GitLab, Atlassian, Outlook, X, Clova)
+1. Slack Integration
+2. Bot Information
+3. MCP Settings (Perplexity, DeepL, GitLab, Atlassian, Outlook, X, Clova)
 4. Computer Use
-5. 웹 서버 / 음성 수신 채널
-6. 능동 수신 채널 (Outlook, Confluence, Jira)
-7. 선제적 제안 기능
+5. Web Server / Voice Input Channel
+6. Proactive Receiver Channel (Outlook, Confluence, Jira)
+7. Proactive Suggestion Feature
 ```
 
 **CRITICAL - Slack Credential Naming:**
 - **Bot credentials** (for Slack Bolt framework):
   - `SLACK_BOT_TOKEN`, `SLACK_APP_TOKEN`, `SLACK_SIGNING_SECRET`, `SLACK_TEAM_ID`
-  - Used in "Slack 연동" section
+  - Used in "Slack Integration" section
   - Slack Bolt auto-detects these names
 - **Web OAuth credentials** (for web interface login):
   - `WEB_SLACK_CLIENT_ID`, `WEB_SLACK_CLIENT_SECRET`
-  - Used in "웹 서버 / 음성 수신 채널" section
+  - Used in "Web Server / Voice Input Channel" section
   - **MUST** have `WEB_` prefix to avoid Slack Bolt conflict
   - If named `SLACK_CLIENT_ID/SECRET`, Bolt switches to OAuth mode and breaks bot token
 
@@ -132,8 +132,8 @@ kira/                           # Root directory
 raise ValueError(f"Invalid token format: {token}")
 
 # GOOD - User-friendly error
-logger.error("Slack 연동 실패: 토큰이 올바르지 않습니다. 설정을 확인해주세요.")
-return "Slack 연동에 실패했습니다. 환경변수 설정에서 Slack 토큰을 확인해주세요."
+logger.error("Slack integration failed: token is invalid. Please check settings.")
+return "Slack integration failed. Please check Slack token in environment settings."
 ```
 
 ### 5. GUI Text Guidelines
@@ -154,34 +154,34 @@ return "Slack 연동에 실패했습니다. 환경변수 설정에서 Slack 토�
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
-│ 2. DEBOUNCING (2초)                                         │
-│    - 같은 사용자의 연속 메시지 병합                             │
+│ 2. DEBOUNCING (2 seconds)                                   │
+│    - Merge consecutive messages from same user              │
 │    - debounced_enqueue_message()                            │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
 │ 3. CHANNEL QUEUE                                            │
-│    - 채널별 독립 큐                                            │
+│    - Independent queue per channel                          │
 │    - 8 workers per channel                                  │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
 │ 4. MESSAGE PROCESSING (_process_message_logic)             │
-│    ├─ Slack Context 수집 (최근 10개 메시지)                   │
-│    ├─ Bot Call Detector (Haiku) - 봇 호출 여부 판단          │
-│    │   ├─ DM: 항상 처리                                      │
-│    │   ├─ Group: 멘션 시에만                                 │
-│    │   └─ Thread: Thread Context Detector 추가 판단          │
-│    ├─ Answer Aggregator - 답변 대기 질문 확인                 │
-│    │   └─ waiting_answer DB 조회                            │
-│    └─ 라우팅 결정                                            │
+│    ├─ Collect Slack Context (last 10 messages)             │
+│    ├─ Bot Call Detector (Haiku) - Determine if bot called  │
+│    │   ├─ DM: Always process                                │
+│    │   ├─ Group: Only when mentioned                        │
+│    │   └─ Thread: Additional Thread Context Detector check  │
+│    ├─ Answer Aggregator - Check for awaiting answers       │
+│    │   └─ Query waiting_answer DB                          │
+│    └─ Routing decision                                      │
 └─────────────────────────────────────────────────────────────┘
                  ↓                              ↓
     ┌────────────────────┐         ┌────────────────────────┐
     │ 5-A. SIMPLE CHAT   │         │ 5-B. ORCHESTRATOR      │
     │ (Haiku, no MCP)    │         │ (Sonnet, all MCP)      │
-    │ - 간단한 대화       │         │ - 복잡한 작업           │
-    │ - 즉시 응답         │         │ - Memory Retriever     │
+    │ - Simple chat      │         │ - Complex tasks        │
+    │ - Instant response │         │ - Memory Retriever     │
     └────────────────────┘         └────────────────────────┘
                                                ↓
                               ┌────────────────────────────────┐
@@ -192,9 +192,9 @@ return "Slack 연동에 실패했습니다. 환경변수 설정에서 Slack 토�
                                                ↓
                               ┌────────────────────────────────┐
                               │ MEMORY QUEUE (global)          │
-                              │ - 1 worker (순차 처리)          │
+                              │ - 1 worker (sequential)        │
                               │ - call_memory_manager()        │
-                              │ - 로컬 파일 시스템 저장        │
+                              │ - Local filesystem storage     │
                               └────────────────────────────────┘
 ```
 
@@ -214,162 +214,162 @@ orchestrator_queue = asyncio.Queue(maxsize=100)
 # 3. Memory Queue (global)
 memory_queue = asyncio.Queue(maxsize=100)
 # - 1 worker (sequential processing)
-# - 로컬 파일 시스템 순차 저장
+# - Sequential local filesystem storage
 ```
 
 ### Proactive Systems
 
-#### 능동 수신 채널 (Checkers) - Beta
+#### Proactive Receiver Channels (Checkers) - Beta
 
 **Outlook Checker**
 ```
-Scheduler (5분 간격)
+Scheduler (5 minute interval)
   ↓
 check_email_updates() - checker.py
-  ├─ Outlook MCP로 받은메일함 조회
+  ├─ Query inbox via Outlook MCP
   └─ process_emails_batch()
        ├─ call_email_task_extractor() - agent.py
-       │    └─ 중요한 작업 추출 → email_tasks DB 저장
-       └─ Pending tasks → Slack Channel Queue로 전송
+       │    └─ Extract important tasks → Save to email_tasks DB
+       └─ Send pending tasks → Slack Channel Queue
 ```
 
 **Confluence Checker**
 ```
-Scheduler (60분 간격)
+Scheduler (60 minute interval)
   ↓
 check_confluence_updates() - confluence_checker.py
-  ├─ Rovo MCP로 최근 N시간 업데이트 조회
-  ├─ Python에서 봇 본인 글 필터링
+  ├─ Query recent N-hour updates via Rovo MCP
+  ├─ Filter out bot's own posts in Python
   └─ process_pages_batch()
        ├─ call_confluence_summarizer() - confluence_agent.py
-       │    └─ 중요한 페이지만 요약
-       └─ Memory에 저장
+       │    └─ Summarize important pages only
+       └─ Save to Memory
 ```
 
 **Jira Checker**
 ```
-Scheduler (30분 간격)
+Scheduler (30 minute interval)
   ↓
 check_jira_updates() - jira_checker.py
-  ├─ Rovo MCP로 할당된 이슈 조회
+  ├─ Query assigned issues via Rovo MCP
   └─ process_issues_batch()
-       ├─ DB에서 기존 이슈 제외
+       ├─ Exclude existing issues from DB
        ├─ call_jira_task_extractor() - jira_agent.py
-       │    └─ 할 일 추출 → jira_tasks DB 저장
-       └─ Pending tasks → Slack Channel Queue로 전송
+       │    └─ Extract tasks → Save to jira_tasks DB
+       └─ Send pending tasks → Slack Channel Queue
 ```
 
-#### 웹 서버 / 음성 수신 채널
+#### Web Server / Voice Input Channel
 
 ```
 FastAPI Server (port 8000, HTTPS)
-  ├─ 인증: Microsoft 365 / Slack OAuth (OpenID Connect)
-  ├─ X (Twitter) OAuth 2.0 인증 플로우
-  ├─ Clova Speech 음성 인식
-  └─ 음성 입력 처리
+  ├─ Authentication: Microsoft 365 / Slack OAuth (OpenID Connect)
+  ├─ X (Twitter) OAuth 2.0 authentication flow
+  ├─ Clova Speech voice recognition
+  └─ Voice input processing
 ```
 
-**필수 요구사항:**
-- SSL 인증서 (`app/config/certs/`)
-- Port 8000 사용 가능
-- X, Clova Speech 사용 시 필수
+**Required:**
+- SSL certificates (`app/config/certs/`)
+- Port 8000 available
+- Required when using X, Clova Speech
 
-**인증 시스템 (Critical):**
-- **Slack OAuth**: OpenID Connect (OIDC) 사용
-  - ❌ Legacy `identity.*` scopes (deprecated, invalid_scope 에러)
+**Authentication System (Critical):**
+- **Slack OAuth**: Uses OpenID Connect (OIDC)
+  - ❌ Legacy `identity.*` scopes (deprecated, invalid_scope error)
   - ✅ OIDC scopes: `openid`, `email`, `profile`
   - Endpoints: `/openid/connect/authorize`, `/api/openid.connect.token`
-  - Enterprise Grid 호환 (Org-ready 필요할 수 있음)
-  - Credentials: `WEB_SLACK_CLIENT_ID`, `WEB_SLACK_CLIENT_SECRET` (Bot Token과 분리)
+  - Enterprise Grid compatible (may require Org-ready)
+  - Credentials: `WEB_SLACK_CLIENT_ID`, `WEB_SLACK_CLIENT_SECRET` (separate from Bot Token)
 - **Microsoft 365**: Azure AD OpenID Connect
-  - Authlib 라이브러리 사용
+  - Uses Authlib library
   - Credentials: `OUTLOOK_CLIENT_ID`, `OUTLOOK_CLIENT_SECRET`, `OUTLOOK_TENANT_ID`
-  - Graph API로 사용자 정보 조회
+  - Query user info via Graph API
 
-#### 선제적 제안 기능 - Beta
+#### Proactive Suggestion Feature - Beta
 
 ```
-Dynamic Suggester (15분 간격)
+Dynamic Suggester (15 minute interval)
   ↓
 call_dynamic_suggester()
-  ├─ 로컬 메모리 파일 분석
-  ├─ 제안 생성 (Sonnet)
-  ├─ call_proactive_confirm() - 사용자 승인 요청
-  │    └─ confirm DB에 저장
-  └─ 승인 시 → Orchestrator Queue로 전달
+  ├─ Analyze local memory files
+  ├─ Generate suggestions (Sonnet)
+  ├─ call_proactive_confirm() - Request user approval
+  │    └─ Save to confirm DB
+  └─ On approval → Send to Orchestrator Queue
 ```
 
 ---
 
 ## 🤖 Agent Inventory
 
-| Agent | Model | MCP | 용도 | 위치 |
-|-------|-------|-----|------|------|
-| **Bot Call Detector** | Haiku | ❌ | 봇 호출 여부 판단 | `cc_agents/bot_call_detector/` |
-| **Thread Context Detector** | Haiku | ❌ | 스레드 내 맥락 판단 | `cc_agents/bot_thread_context_detector/` |
-| **Answer Aggregator** | Sonnet | ✅ | 답변 대기 질문 확인 | `cc_agents/answer_aggregator/` |
-| **Simple Chat** | Haiku | ❌ | 간단한 대화 | `cc_agents/simple_chat/` |
-| **Memory Retriever** | Haiku | ✅ | 관련 메모리 검색 | `cc_agents/memory_retriever/` |
-| **Operator** | Opus | ✅ | 복잡한 작업 수행 | `cc_agents/operator/` |
-| **Memory Manager** | Sonnet | ✅ | 메모리 저장 | `cc_agents/memory_manager/` |
-| **Email Task Extractor** | Haiku | ✅ | 이메일 작업 추출 | `cc_checkers/outlook/agent.py` |
-| **Confluence Summarizer** | Haiku | ✅ | 중요 페이지 요약 | `cc_checkers/atlassian/confluence_agent.py` |
-| **Jira Task Extractor** | Haiku | ✅ | Jira 작업 추출 | `cc_checkers/atlassian/jira_agent.py` |
-| **Dynamic Suggester** | Sonnet | ✅ | 선제적 제안 생성 | `cc_agents/proactive_dynamic_suggester/` |
-| **Proactive Confirm** | Haiku | ✅ | 제안 승인 요청 | `cc_agents/proactive_confirm/` |
+| Agent | Model | MCP | Purpose | Location |
+|-------|-------|-----|---------|----------|
+| **Bot Call Detector** | Haiku | ❌ | Detect bot calls | `cc_agents/bot_call_detector/` |
+| **Thread Context Detector** | Haiku | ❌ | Detect thread context | `cc_agents/bot_thread_context_detector/` |
+| **Answer Aggregator** | Sonnet | ✅ | Check for awaiting answers | `cc_agents/answer_aggregator/` |
+| **Simple Chat** | Haiku | ❌ | Simple conversation | `cc_agents/simple_chat/` |
+| **Memory Retriever** | Haiku | ✅ | Search memory | `cc_agents/memory_retriever/` |
+| **Operator** | Opus | ✅ | Execute complex tasks | `cc_agents/operator/` |
+| **Memory Manager** | Sonnet | ✅ | Store memory | `cc_agents/memory_manager/` |
+| **Email Task Extractor** | Haiku | ✅ | Extract email tasks | `cc_checkers/outlook/agent.py` |
+| **Confluence Summarizer** | Haiku | ✅ | Summarize important pages | `cc_checkers/atlassian/confluence_agent.py` |
+| **Jira Task Extractor** | Haiku | ✅ | Extract Jira tasks | `cc_checkers/atlassian/jira_agent.py` |
+| **Dynamic Suggester** | Sonnet | ✅ | Generate proactive suggestions | `cc_agents/proactive_dynamic_suggester/` |
+| **Proactive Confirm** | Haiku | ✅ | Request suggestion approval | `cc_agents/proactive_confirm/` |
 
 ---
 
 ## 🛠️ MCP Tools Available
 
 ### Core MCP Servers
-- **slack**: 11 tools (메시지, 파일, 리액션, 채널 관리 등)
-- **outlook**: 7 tools (메일 조회, 작성, 답장, 첨부파일 등)
-- **atlassian**: Rovo MCP (Confluence/Jira 통합 검색 및 관리)
-- **gitlab**: 코드 저장소 관리
-- **x**: Twitter/X 도구 (OAuth 1.0a + OAuth 2.0)
-- **perplexity**: 웹 검색
-- **deepl**: 번역
-- **playwright**: 브라우저 자동화 (Chrome profile 사용)
-- **kris**: 내부 API
+- **slack**: 11 tools (messages, files, reactions, channel management, etc.)
+- **outlook**: 7 tools (email query, compose, reply, attachments, etc.)
+- **atlassian**: Rovo MCP (Confluence/Jira unified search and management)
+- **gitlab**: Code repository management
+- **x**: Twitter/X tools (OAuth 1.0a + OAuth 2.0)
+- **perplexity**: Web search
+- **deepl**: Translation
+- **playwright**: Browser automation (uses Chrome profile)
+- **kris**: Internal API
 
 ### Custom MCP Servers (Local)
-- **scheduler**: 메시지 스케줄링 (SQLite)
-- **waiting_answer**: 답변 수집 관리 (SQLite)
-- **confirm**: 사용자 승인 관리 (SQLite)
-- **email_tasks**: 이메일 작업 DB (SQLite)
-- **jira_tasks**: Jira 작업 DB (SQLite)
+- **scheduler**: Message scheduling (SQLite)
+- **waiting_answer**: Answer collection management (SQLite)
+- **confirm**: User approval management (SQLite)
+- **email_tasks**: Email tasks DB (SQLite)
+- **jira_tasks**: Jira tasks DB (SQLite)
 
 ---
 
 ## 💾 Data Storage
 
-### SQLite Databases (4개)
+### SQLite Databases (4)
 ```
 ~/.kira/
-├── waiting_answer.db   # 답변 대기 질문
-├── confirm.db          # 사용자 승인 대기 작업
-├── email_tasks.db      # 이메일에서 추출된 작업
-└── jira_tasks.db       # Jira에서 추출된 작업
+├── waiting_answer.db   # Questions awaiting answers
+├── confirm.db          # Tasks awaiting user approval
+├── email_tasks.db      # Tasks extracted from emails
+└── jira_tasks.db       # Tasks extracted from Jira
 ```
 
-### 로컬 메모리 시스템
+### Local Memory System
 ```
-$FILESYSTEM_BASE_DIR/memories/  # 기본: ~/Documents/KIRA/memories/
-├── channels/           # 채널별 대화 기록
-├── projects/           # 프로젝트 관련 정보
-├── users/              # 유저별 정보
-├── decisions/          # 결정사항
-└── index.md            # 자동 생성 인덱스
+$FILESYSTEM_BASE_DIR/memories/  # Default: ~/Documents/KIRA/memories/
+├── channels/           # Conversation history per channel
+├── projects/           # Project-related information
+├── users/              # User-specific information
+├── decisions/          # Decisions
+└── index.md            # Auto-generated index
 ```
-- **형식**: Markdown 파일
-- **관리**: `slack-memory-store` skill 사용
-- **검색**: Memory Retriever가 인덱스 기반 검색
-- **저장**: Memory Manager가 자동 분류 및 저장
+- **Format**: Markdown files
+- **Management**: Uses `slack-memory-store` skill
+- **Search**: Memory Retriever performs index-based search
+- **Storage**: Memory Manager auto-categorizes and stores
 
 ### Configuration
 ```
-~/.kira/config.env      # 사용자 환경변수 (Electron 앱에서 저장)
+~/.kira/config.env      # User environment variables (saved by Electron app)
 ```
 
 ---
@@ -382,10 +382,10 @@ $FILESYSTEM_BASE_DIR/memories/  # 기본: ~/Documents/KIRA/memories/
 ```python
 # cc_checkers/*/checker.py
 async def check_*_updates():
-    """스케줄러에서 주기적으로 호출"""
-    # 1. MCP로 데이터 조회
-    # 2. Python에서 필터링 (봇 본인 제외 등)
-    # 3. Agent로 전달
+    """Called periodically by scheduler"""
+    # 1. Query data via MCP
+    # 2. Filter in Python (exclude bot's own posts, etc.)
+    # 3. Pass to Agent
     asyncio.create_task(process_*_batch(data))
 ```
 
@@ -393,11 +393,11 @@ async def check_*_updates():
 ```python
 # cc_checkers/*/agent.py
 async def call_*_extractor(data):
-    """Claude SDK로 데이터 분석 및 처리"""
-    # 1. System prompt 생성
-    # 2. ClaudeSDKClient로 MCP 접근
-    # 3. 결과를 DB 또는 메모리에 저장
-    # 4. 필요 시 Slack Queue로 전송
+    """Analyze and process data via Claude SDK"""
+    # 1. Generate system prompt
+    # 2. Access MCP via ClaudeSDKClient
+    # 3. Save results to DB or Memory
+    # 4. Send to Slack Queue if needed
 ```
 
 ### Agent Pattern (Standard)
@@ -411,21 +411,21 @@ async def call_agent_name(
     retrieved_memory: Optional[str] = None
 ) -> str:
     """
-    Claude SDK를 사용하는 표준 에이전트 패턴
+    Standard agent pattern using Claude SDK
 
     Returns:
-        str: 사용자에게 보낼 응답 (Korean)
-        bool: Simple Chat의 경우 처리 여부
+        str: Response to send to user (Korean)
+        bool: For Simple Chat, whether it was handled
     """
     from claude_agent_sdk import ClaudeAgentOptions, ClaudeSDKClient
 
-    # 1. System prompt 생성
+    # 1. Generate system prompt
     system_prompt = create_system_prompt(...)
 
-    # 2. MCP 서버 설정
+    # 2. Configure MCP servers
     mcp_servers = {...}
 
-    # 3. Options 생성
+    # 3. Create Options
     options = ClaudeAgentOptions(
         system_prompt=system_prompt,
         model="haiku",  # or sonnet-4-5
@@ -435,7 +435,7 @@ async def call_agent_name(
         mcp_servers=mcp_servers,
     )
 
-    # 4. SDK 실행
+    # 4. Execute SDK
     async with ClaudeSDKClient(options=options) as client:
         await client.query(user_query)
         async for message in client.receive_response():
@@ -462,7 +462,7 @@ async def tool_function(args: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "content": [{
                 "type": "text",
-                "text": f"작업 실패: {str(e)}"
+                "text": f"Task failed: {str(e)}"
             }]
         }
 ```
@@ -520,46 +520,46 @@ class AuthHandler:
 
 ### Configuration File Structure
 
-**저장 위치**: `~/.kira/config.env`
+**Storage Location**: `~/.kira/config.env`
 
-**섹션 순서** (main.js sections):
+**Section Order** (main.js sections):
 ```javascript
 const sections = {
-  'Slack 연동': [...],
-  '봇 정보': [...],
-  'MCP 설정 - Perplexity': [...],
-  'MCP 설정 - DeepL': [...],
-  'MCP 설정 - GitLab': [...],
-  'MCP 설정 - Atlassian Rovo': [...],
-  'MCP 설정 - Outlook': [...],
-  'MCP 설정 - X': [...],
-  'MCP 설정 - Clova Speech': [...],
+  'Slack Integration': [...],
+  'Bot Information': [...],
+  'MCP Settings - Perplexity': [...],
+  'MCP Settings - DeepL': [...],
+  'MCP Settings - GitLab': [...],
+  'MCP Settings - Atlassian Rovo': [...],
+  'MCP Settings - Outlook': [...],
+  'MCP Settings - X': [...],
+  'MCP Settings - Clova Speech': [...],
   'Computer Use': [...],
-  '웹 서버 / 음성 수신 채널': [...],
-  '능동 수신 채널 - Outlook': [...],
-  '능동 수신 채널 - Confluence': [...],
-  '능동 수신 채널 - Jira': [...],
-  '선제적 제안 기능': [...]
+  'Web Server / Voice Input Channel': [...],
+  'Proactive Receiver Channel - Outlook': [...],
+  'Proactive Receiver Channel - Confluence': [...],
+  'Proactive Receiver Channel - Jira': [...],
+  'Proactive Suggestion Feature': [...]
 };
 ```
 
 ### UI Section Structure (index.html)
 
 ```html
-<!-- 필수 설정 -->
+<!-- Required Settings -->
 <section class="section">
-  <h3>필수 설정 - Slack 연동</h3>
+  <h3>Required Settings - Slack Integration</h3>
   <!-- SLACK_BOT_TOKEN, SLACK_APP_TOKEN, etc. -->
 </section>
 
 <section class="section">
-  <h3>필수 설정 - 봇 정보</h3>
+  <h3>Required Settings - Bot Information</h3>
   <!-- BOT_NAME, BOT_EMAIL, etc. -->
 </section>
 
-<!-- MCP 설정 -->
+<!-- MCP Settings -->
 <section class="section">
-  <h3>MCP 설정</h3>
+  <h3>MCP Settings</h3>
   <!-- Toggle + Fields pattern -->
   <div class="mcp-item">
     <div class="mcp-header">
@@ -580,35 +580,35 @@ const sections = {
   <h3>Computer Use</h3>
 </section>
 
-<!-- 웹 서버 -->
+<!-- Web Server -->
 <section class="section">
-  <h3>웹 서버 / 음성 수신 채널</h3>
+  <h3>Web Server / Voice Input Channel</h3>
 </section>
 
-<!-- 능동 수신 채널 (Beta) -->
+<!-- Proactive Receiver Channels (Beta) -->
 <section class="section">
-  <h3>능동 수신 채널 <span class="beta-chip">beta</span></h3>
+  <h3>Proactive Receiver Channels <span class="beta-chip">beta</span></h3>
 </section>
 
-<!-- 선제적 제안 (Beta) -->
+<!-- Proactive Suggestions (Beta) -->
 <section class="section">
-  <h3>선제적 제안 기능 <span class="beta-chip">beta</span></h3>
+  <h3>Proactive Suggestion Feature <span class="beta-chip">beta</span></h3>
 </section>
 ```
 
 ### Main Process (main.js) Key Responsibilities
 
-1. **Window Management**: 창 생성, 크기/위치 저장/복원
-2. **Python Server Lifecycle**: uv 찾기, 프로세스 spawn, 환경변수 전달
-3. **Configuration**: config.env 읽기/쓰기, parseConfigFile()
+1. **Window Management**: Create window, save/restore size/position
+2. **Python Server Lifecycle**: Find uv, spawn process, pass environment variables
+3. **Configuration**: Read/write config.env, parseConfigFile()
 4. **IPC Handlers**: get-config, save-config, start-server, stop-server
-5. **Log Streaming**: Python stdout/stderr를 renderer로 전송
+5. **Log Streaming**: Stream Python stdout/stderr to renderer
 
 ### Renderer Process (renderer/main.js) Key Responsibilities
 
 1. **Config Load/Save**: window.api.getConfig(), window.api.saveConfig()
-2. **Toggle Visibility**: MCP fields, channel fields, voice fields 표시/숨김
-3. **Auth Provider Handling**: Slack OAuth 필드 조건부 표시
+2. **Toggle Visibility**: Show/hide MCP fields, channel fields, voice fields
+3. **Auth Provider Handling**: Conditionally show Slack OAuth fields
 4. **Server Control**: startServer(), stopServer()
 5. **Log Display**: Real-time log streaming
 
@@ -703,10 +703,10 @@ electron-app/dist/
 - [ ] Web server starts (if enabled)
 
 #### Environment Variables
-- [ ] settings.py 순서와 일치
-- [ ] dev.env 순서와 일치
-- [ ] index.html UI 순서와 일치
-- [ ] main.js sections 순서와 일치
+- [ ] Order matches settings.py
+- [ ] Order matches dev.env
+- [ ] Order matches index.html UI
+- [ ] Order matches main.js sections
 
 #### Integration
 - [ ] Fresh install works (no existing config)
@@ -741,12 +741,12 @@ electron-app/dist/
 ```html
 <!-- General information -->
 <div class="info-box">
-  일반 정보나 도움말
+  General information or help text
 </div>
 
 <!-- Important notice -->
 <div class="notice-box">
-  <strong>중요:</strong> 웹 인터페이스가 필요합니다.
+  <strong>Important:</strong> Web interface is required.
 </div>
 ```
 
@@ -846,48 +846,48 @@ This isn't just a bot - it's an AI coworker that lives in a desktop app. Make it
 
 ---
 
-## 📦 배포 (Deployment)
+## 📦 Deployment
 
-### 프로덕션 URL
+### Production URL
 
-**문서 사이트:**
+**Documentation Site:**
 ```
 https://kira.krafton-ai.com/
 ```
 
-**앱 다운로드:**
+**App Download:**
 ```
 https://kira.krafton-ai.com/download/KIRA-{version}-arm64.dmg
 ```
 
-**현재 버전**: 0.9.0
+**Current Version**: 0.9.0
 
-### 배포 인프라
+### Deployment Infrastructure
 
-- **S3 버킷**: `kira-releases` (ap-northeast-2)
-  - 문서 HTML 파일 (VitePress)
-  - 앱 다운로드 파일 (`.dmg`, `.zip`)
+- **S3 Bucket**: `kira-releases` (ap-northeast-2)
+  - Documentation HTML files (VitePress)
+  - App download files (`.dmg`, `.zip`)
 - **CloudFront**: Custom domain `kira.krafton-ai.com`
   - Origin: S3 Website Endpoint
-  - SSL: AWS ACM 인증서
-- **Route 53**: `kira.krafton-ai.com` A 레코드 (Alias)
+  - SSL: AWS ACM certificate
+- **Route 53**: `kira.krafton-ai.com` A record (Alias)
 
-### 배포 방법
+### Deployment Methods
 
-**문서 배포:**
+**Deploy Documentation:**
 ```bash
 cd vitepress-app
 npm run deploy
 ```
 
-**앱 배포:**
+**Deploy App:**
 ```bash
 cd electron-app
-npm version patch  # 버전 업데이트
-npm run deploy     # 빌드 + S3 업로드
+npm version patch  # Update version
+npm run deploy     # Build + S3 upload
 ```
 
-**상세 가이드**: `DEPLOY.md` 참고
+**Detailed Guide**: See `DEPLOY.md`
 
 ---
 
@@ -925,8 +925,8 @@ npm run deploy     # 빌드 + S3 업로드
 
 **Final Note for Claude Code**: When in doubt, prioritize simplicity and user experience over technical elegance. The best code is the code that lets non-developers successfully deploy their own AI coworker.
 
-**추가 변경 시 반드시 체크**:
-- 환경변수 4곳 동기화 (settings.py, dev.env, index.html, main.js)
-- 섹션 순서 일치
-- 한글 UI 레이블
-- 사용자 친화적 에러 메시지
+**Always check when making additional changes**:
+- Synchronize environment variables in 4 locations (settings.py, dev.env, index.html, main.js)
+- Match section order
+- Korean UI labels
+- User-friendly error messages
