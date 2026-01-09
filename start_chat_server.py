@@ -50,10 +50,18 @@ if static_dir.exists():
 
 # Import chat router directly (avoiding routes/__init__.py which imports other routes requiring slack_sdk)
 try:
+    import importlib.util
     import sys
-    # Import chat router module directly
-    from app.cc_web_interface.routes import chat
-    app.include_router(chat.router)
+    from pathlib import Path
+    
+    # Load chat.py directly without triggering __init__.py
+    chat_path = Path(__file__).parent / "app" / "cc_web_interface" / "routes" / "chat.py"
+    spec = importlib.util.spec_from_file_location("chat_router", chat_path)
+    chat_module = importlib.util.module_from_spec(spec)
+    sys.modules["chat_router"] = chat_module
+    spec.loader.exec_module(chat_module)
+    
+    app.include_router(chat_module.router)
     print("✅ Chat router loaded")
 except Exception as e:
     print(f"❌ Could not load chat router: {e}")
