@@ -73,23 +73,28 @@ async def send_message(message: ChatMessage):
             source="electron"  # Use electron adapter for web messages
         )
         
-        # Process through enhanced context injection system
-        # Try to use enhanced memory retriever if available
+        # Process through KIRA's web message handler
+        # This goes through the full agent pipeline
         try:
-            from app.cc_agents.memory_retriever.agent import call_memory_retriever
+            from app.cc_web_handlers import process_web_message
             
-            memory_query = f"User {message.userName} asked: {message.text}"
-            retrieved_memory = await call_memory_retriever(
-                search_query=memory_query,
+            response_text = await process_web_message(
+                message_text=message.text,
+                user_id=message.userId,
+                user_name=message.userName,
+                channel_id=message.channelId,
+                thread_id=message.threadId,
+                persona_name=message.persona,
                 slack_data=slack_data,
-                message_data=message_data,
-                persona_name=message.persona
+                message_data=message_data
             )
             
-            # Use retrieved memory as response
-            response_text = retrieved_memory if retrieved_memory else "I received your message, but I need the full KIRA environment to generate a complete response."
-        except ImportError:
-            # Fallback: Use context assembler directly if memory retriever not available
+            if not response_text or response_text.strip() == "":
+                response_text = "I received your message, but I'm having trouble generating a response. Please try again."
+                
+        except ImportError as e:
+            logger.warning(f"[CHAT_API] Web handler not available: {e}")
+            # Fallback to context assembly only
             try:
                 from app.cc_agents.context_assembler import ContextAssembler
                 from app.cc_agents.context_sources.filesystem_source import FilesystemContextSource
@@ -119,9 +124,14 @@ async def send_message(message: ChatMessage):
                     response_text = f"Enhanced Context Retrieved:\n\n{context}\n\n[Note: This is context assembly only. Full agent pipeline requires KIRA environment.]"
                 else:
                     response_text = f"Message received: '{message.text}'\n\n[Note: Enhanced context injection is working, but no context was found. Full agent pipeline requires KIRA environment.]"
-            except Exception as e:
-                logger.warning(f"[CHAT_API] Could not use enhanced context injection: {e}")
-                response_text = f"Message received: '{message.text}'\n\n[Note: Enhanced context injection requires full KIRA environment setup. This is a test response.]"
+            except Exception as e2:
+                logger.error(f"[CHAT_API] Fallback also failed: {e2}")
+                response_text = f"Message received: '{message.text}'\n\n[Note: KIRA agent pipeline is not available. Please ensure KIRA environment is properly configured.]"
+        except Exception as e:
+            logger.error(f"[CHAT_API] Error processing web message: {e}")
+            import traceback
+            traceback.print_exc()
+            response_text = f"I encountered an error processing your message: {str(e)}"
         
         logger.info(f"[CHAT_API] Response generated ({len(response_text)} characters)")
         
