@@ -48,10 +48,12 @@ static_dir = Path(__file__).parent / "app" / "cc_web_interface" / "static"
 if static_dir.exists():
     app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
-# Import chat router
+# Import chat router directly (avoiding routes/__init__.py which imports other routes requiring slack_sdk)
 try:
-    from app.cc_web_interface.routes.chat import router as chat_router
-    app.include_router(chat_router)
+    import sys
+    # Import chat router module directly
+    from app.cc_web_interface.routes import chat
+    app.include_router(chat.router)
     print("✅ Chat router loaded")
 except Exception as e:
     print(f"❌ Could not load chat router: {e}")
