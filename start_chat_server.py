@@ -9,6 +9,7 @@ without requiring full KIRA environment setup.
 import os
 import sys
 import logging
+import socket
 from pathlib import Path
 
 # Add app directory to path
@@ -129,8 +130,26 @@ async def health():
     return {"status": "healthy", "service": "KIRA Chat Test Server"}
 
 
+def find_free_port(start_port=8000, max_attempts=100):
+    """Find an available port starting from start_port."""
+    for port in range(start_port, start_port + max_attempts):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(('127.0.0.1', port))
+                return port
+            except OSError:
+                continue
+    raise RuntimeError(f"Could not find an available port after {max_attempts} attempts")
+
+
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    # Try to use PORT env var, otherwise find a free port
+    if os.environ.get("PORT"):
+        port = int(os.environ.get("PORT"))
+    else:
+        # Find a random available port
+        port = find_free_port()
+    
     host = os.environ.get("HOST", "127.0.0.1")
     
     print("=" * 60)

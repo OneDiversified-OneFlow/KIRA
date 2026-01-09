@@ -11,7 +11,13 @@ cd /tmp/KIRA
 python3 start_chat_server.py
 ```
 
-Then open your browser to: **http://127.0.0.1:8000/chat**
+The server will automatically find an available port (starting from 8000) and display the URL.
+Then open your browser to the displayed URL, e.g.: **http://127.0.0.1:8001/chat**
+
+**Note:** You can also set a specific port using the `PORT` environment variable:
+```bash
+PORT=9000 python3 start_chat_server.py
+```
 
 ### Option 2: Full KIRA Web Interface
 
@@ -25,7 +31,7 @@ export WEB_INTERFACE_ENABLED=true
 python3 -m app.main
 ```
 
-Then access: **http://localhost:8000/chat** (or https://localhost:8000 if SSL is configured)
+Then access the chat interface at the port shown in the startup logs (or https://localhost:8000 if SSL is configured)
 
 ## Features
 
@@ -130,7 +136,8 @@ Response
 ## Troubleshooting
 
 ### Server won't start
-- Check if port 8000 is available: `lsof -i :8000`
+- The server automatically finds an available port (starting from 8000)
+- If you need a specific port, set `PORT` environment variable: `PORT=9000 python3 start_chat_server.py`
 - Install dependencies: `pip install fastapi uvicorn`
 
 ### Personas not loading
