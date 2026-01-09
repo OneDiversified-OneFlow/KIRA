@@ -2,6 +2,10 @@
 메모리 검색 에이전트 (Memory Retriever Agent)
 
 이 모듈은 사용자 쿼리와 관련된 메모리를 검색하고 취합하여 반환합니다.
+
+Enhanced Context Injection:
+This module now supports enhanced context injection, assembling context from
+multiple sources (KIRA memories, OneFlow data, persona) before returning.
 """
 
 import logging
@@ -15,6 +19,17 @@ from claude_agent_sdk import (
 )
 
 from app.config.settings import get_settings
+
+# Enhanced context injection imports
+try:
+    from app.cc_agents.context_assembler import ContextAssembler
+    from app.cc_agents.context_sources.filesystem_source import FilesystemContextSource
+    from app.cc_agents.context_sources.oneflow_source import OneFlowContextSource
+    ENHANCED_CONTEXT_AVAILABLE = True
+except ImportError:
+    # Fallback if enhanced context injection is not available
+    ENHANCED_CONTEXT_AVAILABLE = False
+    logging.warning("[MEMORY_RETRIEVER] Enhanced context injection not available, using original behavior")
 
 
 def create_system_prompt(state_prompt: str, memories_path: str) -> str:
@@ -62,14 +77,17 @@ def create_system_prompt(state_prompt: str, memories_path: str) -> str:
     return system_prompt
 
 
-async def call_memory_retriever(
+async def _get_original_memory(
     search_query: str,
     slack_data: Optional[dict] = None,
     message_data: Optional[dict] = None
 ) -> str:
     """
-    메모리 검색 에이전트를 실행합니다.
-
+    Original memory retrieval implementation (preserved for backward compatibility).
+    
+    This function contains the original implementation of memory retrieval
+    using the slack-memory-retrieval skill.
+    
     Args:
         search_query: 메모리 검색 쿼리
         slack_data: Slack 컨텍스트 정보 (선택)
@@ -131,3 +149,63 @@ async def call_memory_retriever(
     except Exception as e:
         logging.error(f"[MEMORY_RETRIEVER] Error: {e}")
         return "관련된 메모리가 없습니다."
+
+
+async def call_memory_retriever(
+    search_query: str,
+    slack_data: Optional[dict] = None,
+    message_data: Optional[dict] = None
+) -> str:
+    """
+    메모리 검색 에이전트를 실행합니다.
+    
+    Enhanced Context Injection:
+    This function now uses the enhanced context injection system to assemble
+    context from multiple sources (KIRA memories, OneFlow data, persona).
+    Falls back to original behavior if enhanced context injection is not available.
+
+    Args:
+        search_query: 메모리 검색 쿼리
+        slack_data: Slack 컨텍스트 정보 (선택)
+        message_data: 메시지 정보 (선택)
+
+    Returns:
+        str: 취합된 메모리 내용 (enhanced with multiple sources if available)
+    """
+    # Use enhanced context injection if available
+    if ENHANCED_CONTEXT_AVAILABLE:
+        try:
+            # Initialize context assembler with default sources
+            assembler = ContextAssembler()
+            
+            # Add filesystem source (KIRA memories)
+            filesystem_source = FilesystemContextSource()
+            assembler.add_source(filesystem_source)
+            
+            # Add OneFlow source (mocked initially)
+            oneflow_source = OneFlowContextSource()
+            assembler.add_source(oneflow_source)
+            
+            # Assemble context from all sources
+            enhanced_context = await assembler.assemble_context(
+                search_query=search_query,
+                slack_data=slack_data,
+                message_data=message_data
+            )
+            
+            # If enhanced context is available, return it
+            if enhanced_context and enhanced_context.strip():
+                logging.info("[MEMORY_RETRIEVER] Using enhanced context injection")
+                return enhanced_context
+            else:
+                # Fallback to original if enhanced context is empty
+                logging.debug("[MEMORY_RETRIEVER] Enhanced context empty, falling back to original")
+                return await _get_original_memory(search_query, slack_data, message_data)
+                
+        except Exception as e:
+            # Fallback to original on error
+            logging.warning(f"[MEMORY_RETRIEVER] Enhanced context injection error: {e}, falling back to original")
+            return await _get_original_memory(search_query, slack_data, message_data)
+    
+    # Fallback to original behavior if enhanced context injection is not available
+    return await _get_original_memory(search_query, slack_data, message_data)
