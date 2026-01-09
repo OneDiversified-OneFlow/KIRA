@@ -69,28 +69,6 @@ except Exception as e:
     traceback.print_exc()
     print("   Server will not function properly without chat router")
     raise
-    
-    @app.get("/api/chat/personas")
-    async def simple_personas():
-        """Simple personas endpoint."""
-        try:
-            from app.cc_agents.persona.persona_manager import PersonaManager
-            manager = PersonaManager()
-            persona_names = manager.list_personas()
-            personas = []
-            for name in persona_names:
-                persona = manager.get_persona(name)
-                if persona:
-                    personas.append({
-                        "name": persona.name,
-                        "display_name": persona.display_name,
-                        "communication_style": persona.communication_style,
-                        "tone": persona.tone,
-                        "traits": persona.traits
-                    })
-            return {"success": True, "personas": personas}
-        except Exception as e:
-            return {"success": False, "personas": [], "error": str(e)}
 
 
 @app.get("/chat")
