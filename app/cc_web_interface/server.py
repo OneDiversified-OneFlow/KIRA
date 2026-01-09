@@ -19,6 +19,7 @@ from app.cc_web_interface.routes import (
     voice_router,
     api_router
 )
+from app.cc_web_interface.routes.chat import router as chat_router
 from app.cc_web_interface.auth_handler import auth_handler
 from app.cc_web_interface.utils import get_session_user, require_auth
 from app.cc_slack_handlers import is_authorized_user
@@ -46,6 +47,7 @@ web_app.include_router(bot_auth_router)
 web_app.include_router(meeting_router)
 web_app.include_router(voice_router)
 web_app.include_router(api_router)
+web_app.include_router(chat_router)  # Chat interface for testing
 
 
 @web_app.get("/")
@@ -96,6 +98,18 @@ async def home(request: Request):
         return HTMLResponse(content=html_content)
     else:
         return HTMLResponse(content="<h1>Voice Interface</h1><p>index.html file not found.</p>")
+
+
+@web_app.get("/chat")
+async def chat_ui(request: Request):
+    """Chat interface for testing enhanced context injection and persona system."""
+    html_path = Path(__file__).parent / "static" / "chat.html"
+    if html_path.exists():
+        with open(html_path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    else:
+        return HTMLResponse(content="<h1>Chat Interface</h1><p>chat.html file not found.</p>", status_code=404)
 
 
 @web_app.get("/health")

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KIRA Chat - Enhanced Context Injection Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .persona-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .persona-selector label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .persona-selector select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .persona-selector select option {
+            background: #667eea;
+            color: white;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message.user {
+            align-items: flex-end;
+        }
+
+        .message.assistant {
+            align-items: flex-start;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.assistant .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-meta {
+            font-size: 11px;
+            color: #999;
+            margin-top: 4px;
+            padding: 0 4px;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .chat-input input:focus {
+            border-color: #667eea;
+        }
+
+        .chat-input button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-input button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .chat-input button:active {
+            transform: translateY(0);
+        }
+
+        .chat-input button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #667eea;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h1>🤖 KIRA Chat</h1>
+            <div class="persona-selector">
+                <label for="persona-select">Persona:</label>
+                <select id="persona-select">
+                    <option value="">Default (No Persona)</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="chat-messages" id="messages"></div>
+        
+        <div class="status" id="status">Ready</div>
+        
+        <div class="chat-input">
+            <input 
+                type="text" 
+                id="message-input" 
+                placeholder="Type your message here..."
+                autocomplete="off"
+            />
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/chat';
+        const messagesContainer = document.getElementById('messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const personaSelect = document.getElementById('persona-select');
+        const statusDiv = document.getElementById('status');
+
+        let currentPersona = '';
+
+        // Load personas on page load
+        async function loadPersonas() {
+            try {
+                const response = await fetch(`${API_BASE}/personas`);
+                const data = await response.json();
+                
+                if (data.success && data.personas) {
+                    data.personas.forEach(persona => {
+                        const option = document.createElement('option');
+                        option.value = persona.name;
+                        option.textContent = `${persona.display_name} (${persona.communication_style}, ${persona.tone})`;
+                        personaSelect.appendChild(option);
+                    });
+                    updateStatus(`Loaded ${data.personas.length} persona(s)`);
+                }
+            } catch (error) {
+                console.error('Error loading personas:', error);
+                updateStatus('Could not load personas');
+            }
+        }
+
+        // Update status
+        function updateStatus(message) {
+            statusDiv.textContent = message;
+        }
+
+        // Add message to chat
+        function addMessage(text, isUser, persona = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'assistant'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = 'message-bubble';
+            bubble.textContent = text;
+            
+            const meta = document.createElement('div');
+            meta.className = 'message-meta';
+            if (persona) {
+                meta.textContent = `Persona: ${persona}`;
+            } else {
+                meta.textContent = new Date().toLocaleTimeString();
+            }
+            
+            messageDiv.appendChild(bubble);
+            messageDiv.appendChild(meta);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Send message
+        async function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            // Add user message
+            addMessage(text, true);
+            messageInput.value = '';
+            
+            // Disable input
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            updateStatus('Sending message...');
+
+            try {
+                const persona = personaSelect.value || null;
+                
+                const response = await fetch(`${API_BASE}/message`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        userId: 'web-user-001',
+                        userName: 'Web User',
+                        channelId: 'web-channel-001',
+                        persona: persona
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    addMessage(data.message, false, data.persona_used);
+                    updateStatus('Message sent successfully');
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error';
+                errorDiv.textContent = `Error: ${error.message}`;
+                messagesContainer.appendChild(errorDiv);
+                updateStatus('Error sending message');
+            } finally {
+                // Re-enable input
+                messageInput.disabled = false;
+                sendButton.disabled = true;
+                messageInput.focus();
+            }
+        }
+
+        // Event listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Load personas on page load
+        loadPersonas();
+
+        // Focus input on load
+        messageInput.focus();
+    </script>
+</body>
+</html>
