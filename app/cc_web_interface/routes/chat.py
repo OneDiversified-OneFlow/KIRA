@@ -11,7 +11,6 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from app.cc_adapters.electron_handler import handle_electron_message
 from app.cc_adapters.adapter_router import get_adapter_router
 
 logger = logging.getLogger(__name__)
