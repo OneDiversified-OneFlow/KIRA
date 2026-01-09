@@ -8,6 +8,8 @@ from app.config import constant
 
 
 class Settings(BaseSettings):
+    model_config = {"extra": "ignore"}  # Ignore extra fields like ANTHROPIC_API_KEY (used by Claude SDK directly)
+    
     # Common environment
     APP_ENV: str = ""
 
