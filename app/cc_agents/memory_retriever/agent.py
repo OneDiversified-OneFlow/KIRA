@@ -154,7 +154,8 @@ async def _get_original_memory(
 async def call_memory_retriever(
     search_query: str,
     slack_data: Optional[dict] = None,
-    message_data: Optional[dict] = None
+    message_data: Optional[dict] = None,
+    persona_name: Optional[str] = None
 ) -> str:
     """
     메모리 검색 에이전트를 실행합니다.
@@ -168,6 +169,7 @@ async def call_memory_retriever(
         search_query: 메모리 검색 쿼리
         slack_data: Slack 컨텍스트 정보 (선택)
         message_data: 메시지 정보 (선택)
+        persona_name: Persona name to use for context injection (선택)
 
     Returns:
         str: 취합된 메모리 내용 (enhanced with multiple sources if available)
@@ -186,11 +188,21 @@ async def call_memory_retriever(
             oneflow_source = OneFlowContextSource()
             assembler.add_source(oneflow_source)
             
+            # Add persona source if persona_name is specified
+            if persona_name:
+                try:
+                    from app.cc_agents.context_sources.persona_source import PersonaContextSource
+                    persona_source = PersonaContextSource(persona_name=persona_name)
+                    assembler.add_source(persona_source)
+                except ImportError:
+                    logging.warning("[MEMORY_RETRIEVER] Persona source not available, skipping persona injection")
+            
             # Assemble context from all sources
             enhanced_context = await assembler.assemble_context(
                 search_query=search_query,
                 slack_data=slack_data,
-                message_data=message_data
+                message_data=message_data,
+                persona_name=persona_name
             )
             
             # If enhanced context is available, return it

@@ -57,6 +57,7 @@ class ContextAssembler:
         search_query: str,
         slack_data: Optional[Dict[str, Any]] = None,
         message_data: Optional[Dict[str, Any]] = None,
+        persona_name: Optional[str] = None,
         **kwargs
     ) -> str:
         """
@@ -69,6 +70,7 @@ class ContextAssembler:
             search_query: The search query or user message
             slack_data: Slack context data (channel, user, etc.)
             message_data: Current message data
+            persona_name: Optional persona name to include in context
             **kwargs: Additional parameters to pass to sources
             
         Returns:
@@ -92,12 +94,16 @@ class ContextAssembler:
                 continue
             
             try:
-                # Get context from source
+                # Get context from source (pass persona_name if available)
+                source_kwargs = {**kwargs}
+                if persona_name:
+                    source_kwargs['persona_name'] = persona_name
+                
                 context = await source.get_context(
                     search_query=search_query,
                     slack_data=slack_data,
                     message_data=message_data,
-                    **kwargs
+                    **source_kwargs
                 )
                 
                 if context and context.strip():
