@@ -54,17 +54,11 @@ try:
     app.include_router(chat_router)
     print("✅ Chat router loaded")
 except Exception as e:
-    print(f"⚠️  Could not load chat router: {e}")
-    print("   Creating minimal chat endpoint...")
-    
-    @app.post("/api/chat/message")
-    async def simple_chat_message(message: dict):
-        """Simple chat endpoint for testing."""
-        return {
-            "success": True,
-            "message": f"Echo: {message.get('text', 'No text provided')}",
-            "timestamp": "2025-01-27T10:00:00Z"
-        }
+    print(f"❌ Could not load chat router: {e}")
+    import traceback
+    traceback.print_exc()
+    print("   Server will not function properly without chat router")
+    raise
     
     @app.get("/api/chat/personas")
     async def simple_personas():
