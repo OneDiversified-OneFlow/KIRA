@@ -65,6 +65,14 @@ async def send_message(message: ChatMessage):
         
         logger.info(f"[CHAT_API] Received message from {message.userName}: {message.text[:50]}...")
         
+        # Ensure ANTHROPIC_API_KEY is in environment (Claude SDK reads from here)
+        import os
+        from dotenv import load_dotenv
+        load_dotenv("app/config/env/dev.env", override=True)
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        if api_key:
+            os.environ["ANTHROPIC_API_KEY"] = api_key
+        
         # Use adapter router to adapt message
         router_adapter = get_adapter_router()
         slack_data, message_data = router_adapter.adapt_message(
