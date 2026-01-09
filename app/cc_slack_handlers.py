@@ -142,22 +142,32 @@ async def _process_message_logic(message, client):
 
     user_text = await convert_mentions_to_readable(user_text, client)
 
-    # Collect channel info from Slack API
-    slack_data = get_slack_context_data(channel_id, message_limit=10)
-
-    # Add current message info
-    message_data = {
-        "user_id": user_id,
-        "user_name": user_name,
-        "user_text": user_text,
-        "channel_id": channel_id,
-        "thread_ts": thread_ts,
-        "message_ts": message_ts,
-    }
-
-    # Add file info if files are attached
-    if message.get("files"):
-        message_data["files"] = message.get("files")
+    # Use adapter router to ensure message is in correct format
+    # (For Slack, this is a pass-through, but ensures consistency)
+    try:
+        from app.cc_adapters.adapter_router import get_adapter_router
+        router = get_adapter_router()
+        slack_data, message_data = router.adapt_message(
+            message,
+            context={"slack_data": get_slack_context_data(channel_id, message_limit=10)},
+            source="slack"
+        )
+    except ImportError:
+        # Fallback to original behavior if adapters not available
+        logging.warning("[SLACK_HANDLERS] Adapter router not available, using original behavior")
+        slack_data = get_slack_context_data(channel_id, message_limit=10)
+        message_data = {
+            "user_id": user_id,
+            "user_name": user_name,
+            "user_text": user_text,
+            "channel_id": channel_id,
+            "thread_ts": thread_ts,
+            "message_ts": message_ts,
+        }
+        
+        # Add file info if files are attached
+        if message.get("files"):
+            message_data["files"] = message.get("files")
 
     # Proactive Confirm check: Check if user responded to pending confirm
     logging.info(f"[PROACTIVE_CONFIRM] Checking for pending confirms (user={user_id}, channel={channel_id}, thread_ts={thread_ts})")
